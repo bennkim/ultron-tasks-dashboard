@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultron Task Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--blue:#58a6ff;--red:#f85149;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:20px;max-width:1200px;margin:0 auto}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:24px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-value{font-size:1.8rem;font-weight:700}
+.stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
+.stat-done .stat-value{color:var(--green)}
+.stat-progress .stat-value{color:var(--blue)}
+.stat-blocked .stat-value{color:var(--red)}
+.stat-todo .stat-value{color:var(--yellow)}
+.progress-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px}
+.progress-section h2{font-size:.9rem;margin-bottom:8px}
+.big-bar{height:24px;background:var(--border);border-radius:12px;overflow:hidden}
+.big-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:12px;transition:width .5s}
+.big-pct{text-align:right;font-size:.8rem;color:var(--muted);margin-top:4px}
+.filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .15s}
+.filter-btn:hover,.filter-btn.active{border-color:var(--blue);color:var(--blue)}
+.section-title{font-size:1rem;font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.epic{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.epic-header{display:flex;align-items:center;gap:8px;padding:14px 16px;cursor:pointer;user-select:none;flex-wrap:wrap}
+.epic-header:hover{background:#1c2333}
+.epic.collapsed .epic-body{display:none}
+.epic.collapsed .chevron{transform:rotate(-90deg)}
+.chevron{font-size:.7rem;color:var(--muted);transition:transform .2s;width:14px}
+.epic-id{font-size:.75rem;color:var(--blue);font-weight:600}
+.epic-title{font-weight:600;flex:1;min-width:150px}
+.priority{font-size:.75rem;padding:2px 8px;border-radius:10px;background:var(--border)}
+.epic-status{font-size:.75rem;color:var(--muted)}
+.progress-bar{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:3px}
+.progress-text{font-size:.75rem;color:var(--muted);width:35px;text-align:right}
+.story{border-top:1px solid var(--border)}
+.story-header{display:flex;align-items:center;gap:8px;padding:10px 16px 10px 32px;cursor:pointer;user-select:none;flex-wrap:wrap}
+.story-header:hover{background:#1c2333}
+.story.collapsed .story-body{display:none}
+.story.collapsed .chevron{transform:rotate(-90deg)}
+.story-id{font-size:.7rem;color:var(--purple);font-weight:600}
+.story-title{flex:1;font-size:.9rem;min-width:120px}
+.story-progress{font-size:.75rem;color:var(--muted)}
+.mini-bar{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.mini-fill{height:100%;background:var(--green);border-radius:2px}
+.story-body{padding:0 16px 12px 32px}
+.task-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.task-table th{text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase}
+.task-table td{padding:6px 8px;border-bottom:1px solid #21262d}
+.task-id{font-weight:600;color:var(--blue);white-space:nowrap}
+.task-desc{max-width:400px}
+.badge{font-size:.7rem;padding:1px 8px;border-radius:10px;white-space:nowrap}
+.badge-done{background:#1a3a2a;color:var(--green)}
+.badge-progress{background:#1a2a3a;color:var(--blue)}
+.badge-blocked{background:#3a1a1a;color:var(--red)}
+.badge-todo{background:#2a2a1a;color:var(--yellow)}
+.badge-backlog{background:#1a1a1a;color:var(--muted)}
+.badge-review{background:#2a1a3a;color:var(--purple)}
+.ice{font-weight:700;font-size:.8rem;padding:2px 6px;border-radius:6px}
+.ice-critical{color:#fff;background:rgba(248,81,73,.3)}
+.ice-high{color:var(--orange);background:rgba(219,109,40,.15)}
+.ice-medium{color:var(--yellow);background:rgba(210,153,34,.15)}
+.ice-low{color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h3{font-size:.85rem;margin-bottom:10px}
+.blocker-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85rem}
+.blocker-item:last-child{border:none}
+.rank-item{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.85rem}
+.rank-num{color:var(--muted);font-weight:600;width:20px;text-align:right}
+.rank-id{color:var(--blue);font-weight:600}
+.rank-score{margin-left:auto}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.epic-header,.story-header{font-size:.85rem}}
+</style>
+</head>
+<body>
+<h1>📊 Ultron C-Suite Task Dashboard</h1>
+<p class="subtitle">마지막 빌드: 2026. 3. 27. 오후 12:57:41</p>
+
+<div class="summary">
+  <div class="stat"><div class="stat-value">21</div><div class="stat-label">전체</div></div>
+  <div class="stat stat-done"><div class="stat-value">10</div><div class="stat-label">✅ 완료</div></div>
+  <div class="stat stat-progress"><div class="stat-value">0</div><div class="stat-label">🔄 진행중</div></div>
+  <div class="stat stat-blocked"><div class="stat-value">2</div><div class="stat-label">🚨 블로커</div></div>
+  <div class="stat stat-todo"><div class="stat-value">9</div><div class="stat-label">🔲 대기</div></div>
+</div>
+
+<div class="progress-section">
+  <h2>전체 진행률</h2>
+  <div class="big-bar"><div class="big-fill" style="width:48%"></div></div>
+  <div class="big-pct">10/21 (48%)</div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h3>🚨 블로커 (2건)</h3>
+    <div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-003</span><span>Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</span><span style="color:var(--muted);margin-left:auto">CTO</span></div><div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-006</span><span>앱 라이브 모드 전환</span><span style="color:var(--muted);margin-left:auto">의장</span></div>
+  </div>
+  <div class="panel">
+    <h3>🏆 ICE 랭킹 (미완료 Top 10)</h3>
+    <div class="rank-item"><span class="rank-num">1</span><span class="rank-id">T-004</span><span>CompleteRegistration 이벤트 테스트</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">2</span><span class="rank-id">T-010</span><span>검토 후 게시</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">3</span><span class="rank-id">T-009</span><span>광고 D 이미지/카피 교체 확인</span><span class="rank-score"><span class="ice ice-high">448</span></span></div><div class="rank-item"><span class="rank-num">4</span><span class="rank-id">T-008</span><span>광고 이름 정리 (사본 → A/B/C/D)</span><span class="rank-score"><span class="ice ice-high">405</span></span></div><div class="rank-item"><span class="rank-num">5</span><span class="rank-id">T-011</span><span>"분석된 영상 0건" → 데모 수치 추가</span><span class="rank-score"><span class="ice ice-medium">336</span></span></div><div class="rank-item"><span class="rank-num">6</span><span class="rank-id">T-007</span><span>도메인 인증 확인</span><span class="rank-score"><span class="ice ice-medium">294</span></span></div><div class="rank-item"><span class="rank-num">7</span><span class="rank-id">T-005</span><span>CAPI 설정</span><span class="rank-score"><span class="ice ice-medium">240</span></span></div><div class="rank-item"><span class="rank-num">8</span><span class="rank-id">T-003</span><span>Cloudflare Pages 배포 (외부 담당자에게 …</span><span class="rank-score"><span class="ice ice-medium">210</span></span></div><div class="rank-item"><span class="rank-num">9</span><span class="rank-id">T-012</span><span>"스크린샷 준비 중" → 실제 목업 삽입</span><span class="rank-score"><span class="ice ice-medium">210</span></span></div><div class="rank-item"><span class="rank-num">10</span><span class="rank-id">T-006</span><span>앱 라이브 모드 전환</span><span class="rank-score"><span class="ice ice-low">180</span></span></div>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterBy('all')">전체</button>
+  <button class="filter-btn" onclick="filterBy('CEO')">🤖 CEO</button>
+  <button class="filter-btn" onclick="filterBy('CMO')">🎯 CMO</button>
+  <button class="filter-btn" onclick="filterBy('CTO')">💻 CTO</button>
+  <button class="filter-btn" onclick="filterBy('의장')">👑 의장</button>
+</div>
+
+<div class="section-title">에픽</div>
+<div class="epic">
+    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="epic-id">E-001</span>
+      <span class="epic-title">WakaLab 메타 광고 런칭</span>
+      <span class="priority">🟠 P1</span>
+      <span class="epic-status">🔄 IN_PROGRESS</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
+      <span class="progress-text">15%</span>
+    </div>
+    <div class="epic-body">
+      <div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-001</span>
+      <span class="story-title">광고 소재 제작</span>
+      <span class="badge badge-done">✅ DONE</span>
+      <span class="story-progress">0/0</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-002</span>
+      <span class="story-title">캠페인 구조 설계</span>
+      <span class="badge badge-done">✅ DONE</span>
+      <span class="story-progress">0/0</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-003</span>
+      <span class="story-title">Meta Pixel 설치</span>
+      <span class="badge badge-progress">🔄 IN_PROGRESS</span>
+      <span class="story-progress">2/5</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:40%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row done">
+    <td class="task-id">T-001</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">Pixel base code 프론트엔드 삽입</td>
+    <td class="task-ice"><span class="ice ice-critical">720</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-002</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">develop 브랜치 푸시</td>
+    <td class="task-ice"><span class="ice ice-high">648</span></td>
+  </tr><tr class="task-row blocked">
+    <td class="task-id">T-003</td>
+    <td class="task-status"><span class="badge badge-blocked">🚨</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</td>
+    <td class="task-ice"><span class="ice ice-medium">210</span></td>
+  </tr><tr class="task-row todo">
+    <td class="task-id">T-004</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">CompleteRegistration 이벤트 테스트</td>
+    <td class="task-ice"><span class="ice ice-high">560</span></td>
+  </tr><tr class="task-row todo">
+    <td class="task-id">T-005</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">CAPI 설정</td>
+    <td class="task-ice"><span class="ice ice-medium">240</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-004</span>
+      <span class="story-title">Meta 앱 라이브 전환</span>
+      <span class="badge badge-blocked">🚨 BLOCKED</span>
+      <span class="story-progress">0/2</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row blocked">
+    <td class="task-id">T-006</td>
+    <td class="task-status"><span class="badge badge-blocked">🚨</span></td>
+    <td class="task-assignee">의장</td>
+    <td class="task-desc">앱 라이브 모드 전환</td>
+    <td class="task-ice"><span class="ice ice-low">180</span></td>
+  </tr><tr class="task-row todo">
+    <td class="task-id">T-007</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">도메인 인증 확인</td>
+    <td class="task-ice"><span class="ice ice-medium">294</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-005</span>
+      <span class="story-title">캠페인 세팅 마무리</span>
+      <span class="badge badge-progress">🔄 IN_PROGRESS</span>
+      <span class="story-progress">0/3</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row todo">
+    <td class="task-id">T-008</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CMO</td>
+    <td class="task-desc">광고 이름 정리 (사본 → A/B/C/D)</td>
+    <td class="task-ice"><span class="ice ice-high">405</span></td>
+  </tr><tr class="task-row todo">
+    <td class="task-id">T-009</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CMO</td>
+    <td class="task-desc">광고 D 이미지/카피 교체 확인</td>
+    <td class="task-ice"><span class="ice ice-high">448</span></td>
+  </tr><tr class="task-row todo">
+    <td class="task-id">T-010</td>
+    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
+    <td class="task-assignee">CMO</td>
+    <td class="task-desc">검토 후 게시</td>
+    <td class="task-ice"><span class="ice ice-high">560</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-006</span>
+      <span class="story-title">랜딩페이지 CRO 개선</span>
+      <span class="badge badge-backlog">📋 BACKLOG</span>
+      <span class="story-progress">0/3</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row backlog">
+    <td class="task-id">T-011</td>
+    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">"분석된 영상 0건" → 데모 수치 추가</td>
+    <td class="task-ice"><span class="ice ice-medium">336</span></td>
+  </tr><tr class="task-row backlog">
+    <td class="task-id">T-012</td>
+    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">"스크린샷 준비 중" → 실제 목업 삽입</td>
+    <td class="task-ice"><span class="ice ice-medium">210</span></td>
+  </tr><tr class="task-row backlog">
+    <td class="task-id">T-013</td>
+    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
+    <td class="task-assignee">CTO</td>
+    <td class="task-desc">Hero 헤드라인 UTM 분기 구현</td>
+    <td class="task-ice"><span class="ice ice-low">120</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div>
+    </div>
+  </div><div class="epic">
+    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="epic-id">E-002</span>
+      <span class="epic-title">Ultron 시스템 운영</span>
+      <span class="priority">🟡 P2</span>
+      <span class="epic-status">🔄 IN_PROGRESS</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      <span class="progress-text">100%</span>
+    </div>
+    <div class="epic-body">
+      <div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-007</span>
+      <span class="story-title">봇 인프라 세팅</span>
+      <span class="badge badge-done">✅ DONE</span>
+      <span class="story-progress">5/5</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row done">
+    <td class="task-id">T-014</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">Discord CMO 봇 생성 + 배포</td>
+    <td class="task-ice"><span class="ice ice-high">567</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-015</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">Discord CTO 봇 생성 + 배포</td>
+    <td class="task-ice"><span class="ice ice-high">567</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-016</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">채널 바인딩 설정</td>
+    <td class="task-ice"><span class="ice ice-high">576</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-017</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">GOVERNANCE.md 작성</td>
+    <td class="task-ice"><span class="ice ice-high">448</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-018</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">마케팅 스킬 34개 설치</td>
+    <td class="task-ice"><span class="ice ice-medium">384</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div><div class="story">
+    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <span class="chevron">▼</span>
+      <span class="story-id">S-008</span>
+      <span class="story-title">봇 간 커뮤니케이션</span>
+      <span class="badge badge-done">✅ DONE</span>
+      <span class="story-progress">3/3</span>
+      <div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div>
+    </div>
+    <div class="story-body">
+      <table class="task-table">
+        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
+        <tbody><tr class="task-row done">
+    <td class="task-id">T-019</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">allowBots 설정</td>
+    <td class="task-ice"><span class="ice ice-high">648</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-020</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">위계/채널 규율 설정</td>
+    <td class="task-ice"><span class="ice ice-high">448</span></td>
+  </tr><tr class="task-row done">
+    <td class="task-id">T-021</td>
+    <td class="task-status"><span class="badge badge-done">✅</span></td>
+    <td class="task-assignee">CEO</td>
+    <td class="task-desc">원탁회의 채널 설정</td>
+    <td class="task-ice"><span class="ice ice-high">448</span></td>
+  </tr></tbody>
+      </table>
+    </div>
+  </div>
+    </div>
+  </div>
+
+<script>
+function filterBy(role) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.task-row').forEach(row => {
+    if (role === 'all') { row.style.display = ''; return; }
+    const assignee = row.querySelector('.task-assignee')?.textContent || '';
+    row.style.display = assignee.includes(role) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
