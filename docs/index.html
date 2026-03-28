@@ -1,37 +1,44 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ultron Task Dashboard</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ultron C-Suite Dashboard</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--blue:#58a6ff;--red:#f85149;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:20px;max-width:1200px;margin:0 auto}
 h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
-.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:24px}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:24px}
+.subtitle{color:var(--muted);font-size:.8rem;margin-bottom:20px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{background:none;border:none;color:var(--muted);padding:10px 18px;font-size:.85rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Stats */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:24px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
-.stat-value{font-size:1.8rem;font-weight:700}
-.stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
-.stat-done .stat-value{color:var(--green)}
-.stat-progress .stat-value{color:var(--blue)}
-.stat-blocked .stat-value{color:var(--red)}
-.stat-todo .stat-value{color:var(--yellow)}
+.stat-value{font-size:1.8rem;font-weight:700}.stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
+.stat-done .stat-value{color:var(--green)}.stat-progress .stat-value{color:var(--blue)}
+.stat-blocked .stat-value{color:var(--red)}.stat-todo .stat-value{color:var(--yellow)}
+
 .progress-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px}
 .progress-section h2{font-size:.9rem;margin-bottom:8px}
 .big-bar{height:24px;background:var(--border);border-radius:12px;overflow:hidden}
-.big-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:12px;transition:width .5s}
+.big-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:12px}
 .big-pct{text-align:right;font-size:.8rem;color:var(--muted);margin-top:4px}
+
 .filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .filter-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .15s}
 .filter-btn:hover,.filter-btn.active{border-color:var(--blue);color:var(--blue)}
-.section-title{font-size:1rem;font-weight:600;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+
+.section-title{font-size:1rem;font-weight:600;margin:20px 0 12px}
 .epic{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .epic-header{display:flex;align-items:center;gap:8px;padding:14px 16px;cursor:pointer;user-select:none;flex-wrap:wrap}
 .epic-header:hover{background:#1c2333}
-.epic.collapsed .epic-body{display:none}
-.epic.collapsed .chevron{transform:rotate(-90deg)}
+.epic.collapsed .epic-body{display:none}.epic.collapsed .chevron{transform:rotate(-90deg)}
 .chevron{font-size:.7rem;color:var(--muted);transition:transform .2s;width:14px}
 .epic-id{font-size:.75rem;color:var(--blue);font-weight:600}
 .epic-title{font-weight:600;flex:1;min-width:150px}
@@ -40,11 +47,11 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .progress-bar{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;background:var(--green);border-radius:3px}
 .progress-text{font-size:.75rem;color:var(--muted);width:35px;text-align:right}
+
 .story{border-top:1px solid var(--border)}
 .story-header{display:flex;align-items:center;gap:8px;padding:10px 16px 10px 32px;cursor:pointer;user-select:none;flex-wrap:wrap}
 .story-header:hover{background:#1c2333}
-.story.collapsed .story-body{display:none}
-.story.collapsed .chevron{transform:rotate(-90deg)}
+.story.collapsed .story-body{display:none}.story.collapsed .chevron{transform:rotate(-90deg)}
 .story-id{font-size:.7rem;color:var(--purple);font-weight:600}
 .story-title{flex:1;font-size:.9rem;min-width:120px}
 .story-progress{font-size:.75rem;color:var(--muted)}
@@ -57,33 +64,66 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .task-id{font-weight:600;color:var(--blue);white-space:nowrap}
 .task-desc{max-width:400px}
 .badge{font-size:.7rem;padding:1px 8px;border-radius:10px;white-space:nowrap}
-.badge-done{background:#1a3a2a;color:var(--green)}
-.badge-progress{background:#1a2a3a;color:var(--blue)}
-.badge-blocked{background:#3a1a1a;color:var(--red)}
-.badge-todo{background:#2a2a1a;color:var(--yellow)}
-.badge-backlog{background:#1a1a1a;color:var(--muted)}
-.badge-review{background:#2a1a3a;color:var(--purple)}
+.badge-done{background:#1a3a2a;color:var(--green)}.badge-progress{background:#1a2a3a;color:var(--blue)}
+.badge-blocked{background:#3a1a1a;color:var(--red)}.badge-todo{background:#2a2a1a;color:var(--yellow)}
+.badge-backlog{background:#1a1a1a;color:var(--muted)}.badge-review{background:#2a1a3a;color:var(--purple)}
 .ice{font-weight:700;font-size:.8rem;padding:2px 6px;border-radius:6px}
-.ice-critical{color:#fff;background:rgba(248,81,73,.3)}
-.ice-high{color:var(--orange);background:rgba(219,109,40,.15)}
-.ice-medium{color:var(--yellow);background:rgba(210,153,34,.15)}
-.ice-low{color:var(--muted)}
+.ice-critical{color:#fff;background:rgba(248,81,73,.3)}.ice-high{color:var(--orange);background:rgba(219,109,40,.15)}
+.ice-medium{color:var(--yellow);background:rgba(210,153,34,.15)}.ice-low{color:var(--muted)}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
 .panel h3{font-size:.85rem;margin-bottom:10px}
-.blocker-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #21262d;font-size:.85rem}
-.blocker-item:last-child{border:none}
-.rank-item{display:flex;align-items:center;gap:10px;padding:5px 0;font-size:.85rem}
+.blocker-item,.rank-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #21262d;font-size:.85rem}
+.blocker-item:last-child,.rank-item:last-child{border:none}
 .rank-num{color:var(--muted);font-weight:600;width:20px;text-align:right}
 .rank-id{color:var(--blue);font-weight:600}
 .rank-score{margin-left:auto}
 .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.epic-header,.story-header{font-size:.85rem}}
+
+/* UTM Builder */
+.utm-form{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.utm-form h3{font-size:.95rem;margin-bottom:16px}
+.utm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.utm-field label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.utm-field input,.utm-field select{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none}
+.utm-field input:focus,.utm-field select:focus{border-color:var(--blue)}
+.utm-result{margin-top:16px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:.8rem;word-break:break-all;color:var(--blue);min-height:40px}
+.utm-actions{display:flex;gap:8px;margin-top:12px}
+.utm-btn{padding:8px 20px;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.utm-btn-primary{background:var(--blue);color:#fff}.utm-btn-primary:hover{opacity:.85}
+.utm-btn-secondary{background:var(--border);color:var(--text)}.utm-btn-secondary:hover{background:#3d444d}
+.copy-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.copy-toast.show{opacity:1}
+
+/* Campaign View */
+.campaign-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.campaign-card h4{font-size:.9rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.campaign-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:.8rem;color:var(--muted)}
+.campaign-meta span{display:flex;align-items:center;gap:4px}
+.creative-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.creative{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.creative-name{font-size:.85rem;font-weight:600;margin-bottom:4px}
+.creative-status{font-size:.75rem;color:var(--muted)}
+.creative-copy{font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.4}
+.tag{display:inline-block;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-right:4px}
+.tag-active{background:rgba(63,185,80,.15);color:var(--green)}
+.tag-draft{background:rgba(139,148,158,.15);color:var(--muted)}
+.tag-paused{background:rgba(210,153,34,.15);color:var(--yellow)}
+
+@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.creative-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<h1>📊 Ultron C-Suite Task Dashboard</h1>
-<p class="subtitle">마지막 빌드: 2026. 3. 28. 오후 10:08:35</p>
+<h1>📊 Ultron C-Suite Dashboard</h1>
+<p class="subtitle">마지막 빌드: 2026. 3. 28. 오후 10:09:41</p>
 
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('tasks')">📋 태스크</button>
+  <button class="tab" onclick="switchTab('campaigns')">📢 캠페인</button>
+  <button class="tab" onclick="switchTab('utm')">🔗 UTM 빌더</button>
+</div>
+
+<!-- TAB: Tasks -->
+<div id="tab-tasks" class="tab-content active">
 <div class="summary">
   <div class="stat"><div class="stat-value">36</div><div class="stat-label">전체</div></div>
   <div class="stat stat-done"><div class="stat-value">10</div><div class="stat-label">✅ 완료</div></div>
@@ -91,24 +131,11 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
   <div class="stat stat-blocked"><div class="stat-value">2</div><div class="stat-label">🚨 블로커</div></div>
   <div class="stat stat-todo"><div class="stat-value">24</div><div class="stat-label">🔲 대기</div></div>
 </div>
-
-<div class="progress-section">
-  <h2>전체 진행률</h2>
-  <div class="big-bar"><div class="big-fill" style="width:28%"></div></div>
-  <div class="big-pct">10/36 (28%)</div>
-</div>
-
+<div class="progress-section"><h2>전체 진행률</h2><div class="big-bar"><div class="big-fill" style="width:28%"></div></div><div class="big-pct">10/36 (28%)</div></div>
 <div class="panels">
-  <div class="panel">
-    <h3>🚨 블로커 (2건)</h3>
-    <div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-003</span><span>Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</span><span style="color:var(--muted);margin-left:auto">CTO</span></div><div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-006</span><span>앱 라이브 모드 전환</span><span style="color:var(--muted);margin-left:auto">의장</span></div>
-  </div>
-  <div class="panel">
-    <h3>🏆 ICE 랭킹 (미완료 Top 10)</h3>
-    <div class="rank-item"><span class="rank-num">1</span><span class="rank-id">T-030</span><span>탭 UI 컴포넌트 구현 (Tasks / Ad Manag…</span><span class="rank-score"><span class="ice ice-high">576</span></span></div><div class="rank-item"><span class="rank-num">2</span><span class="rank-id">T-031</span><span>기존 태스크 뷰를 Tasks 탭으로 래핑</span><span class="rank-score"><span class="ice ice-high">567</span></span></div><div class="rank-item"><span class="rank-num">3</span><span class="rank-id">T-004</span><span>CompleteRegistration 이벤트 테스트</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">4</span><span class="rank-id">T-010</span><span>검토 후 게시</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">5</span><span class="rank-id">T-022</span><span>Planner 프롬프트 설계 (스펙 자동 생성 템플릿)</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">6</span><span class="rank-id">T-028</span><span>TASKS.md 태스크 포맷에 "완료 조건" 필드 추가</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">7</span><span class="rank-id">T-032</span><span>Ad Manager 스펙 정의 (UTM 빌더, 캠페인 …</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">8</span><span class="rank-id">T-009</span><span>광고 D 이미지/카피 교체 확인</span><span class="rank-score"><span class="ice ice-high">448</span></span></div><div class="rank-item"><span class="rank-num">9</span><span class="rank-id">T-026</span><span>채점 기준 정의 (기능 완성도, 디자인, 코드 품질, …</span><span class="rank-score"><span class="ice ice-high">448</span></span></div><div class="rank-item"><span class="rank-num">10</span><span class="rank-id">T-033</span><span>UTM 빌더 UI (URL + 파라미터 생성/복사)</span><span class="rank-score"><span class="ice ice-high">448</span></span></div>
-  </div>
+  <div class="panel"><h3>🚨 블로커 (2건)</h3><div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-003</span><span>Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</span><span style="color:var(--muted);margin-left:auto">CTO</span></div><div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">T-006</span><span>앱 라이브 모드 전환</span><span style="color:var(--muted);margin-left:auto">의장</span></div></div>
+  <div class="panel"><h3>🏆 ICE 랭킹 (미완료 Top 10)</h3><div class="rank-item"><span class="rank-num">1</span><span class="rank-id">T-030</span><span>탭 UI 컴포넌트 구현 (Tasks / Ad Manag…</span><span class="rank-score"><span class="ice ice-high">576</span></span></div><div class="rank-item"><span class="rank-num">2</span><span class="rank-id">T-031</span><span>기존 태스크 뷰를 Tasks 탭으로 래핑</span><span class="rank-score"><span class="ice ice-high">567</span></span></div><div class="rank-item"><span class="rank-num">3</span><span class="rank-id">T-004</span><span>CompleteRegistration 이벤트 테스트</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">4</span><span class="rank-id">T-010</span><span>검토 후 게시</span><span class="rank-score"><span class="ice ice-high">560</span></span></div><div class="rank-item"><span class="rank-num">5</span><span class="rank-id">T-022</span><span>Planner 프롬프트 설계 (스펙 자동 생성 템플릿)</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">6</span><span class="rank-id">T-028</span><span>TASKS.md 태스크 포맷에 "완료 조건" 필드 추가</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">7</span><span class="rank-id">T-032</span><span>Ad Manager 스펙 정의 (UTM 빌더, 캠페인 …</span><span class="rank-score"><span class="ice ice-high">504</span></span></div><div class="rank-item"><span class="rank-num">8</span><span class="rank-id">T-009</span><span>광고 D 이미지/카피 교체 확인</span><span class="rank-score"><span class="ice ice-high">448</span></span></div><div class="rank-item"><span class="rank-num">9</span><span class="rank-id">T-026</span><span>채점 기준 정의 (기능 완성도, 디자인, 코드 품질, …</span><span class="rank-score"><span class="ice ice-high">448</span></span></div><div class="rank-item"><span class="rank-num">10</span><span class="rank-id">T-033</span><span>UTM 빌더 UI (URL + 파라미터 생성/복사)</span><span class="rank-score"><span class="ice ice-high">448</span></span></div></div>
 </div>
-
 <div class="filters">
   <button class="filter-btn active" onclick="filterBy('all')">전체</button>
   <button class="filter-btn" onclick="filterBy('CEO')">🤖 CEO</button>
@@ -116,483 +143,187 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
   <button class="filter-btn" onclick="filterBy('CTO')">💻 CTO</button>
   <button class="filter-btn" onclick="filterBy('의장')">👑 의장</button>
 </div>
-
 <div class="section-title">에픽</div>
-<div class="epic">
-    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="epic-id">E-001</span>
-      <span class="epic-title">WakaLab 메타 광고 런칭</span>
-      <span class="priority">🟠 P1</span>
-      <span class="epic-status">🔄 IN_PROGRESS</span>
-      <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
-      <span class="progress-text">15%</span>
+<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">E-001</span><span class="epic-title">WakaLab 메타 광고 런칭</span><span class="priority">🟠 P1</span><span class="epic-status">🔄 IN_PROGRESS</span><div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div><span class="progress-text">15%</span></div><div class="epic-body"><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-001</span><span class="story-title">광고 소재 제작</span><span class="badge badge-done">✅ DONE</span><span class="story-progress">0/0</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-002</span><span class="story-title">캠페인 구조 설계</span><span class="badge badge-done">✅ DONE</span><span class="story-progress">0/0</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-003</span><span class="story-title">Meta Pixel 설치</span><span class="badge badge-progress">🔄 IN_PROGRESS</span><span class="story-progress">2/5</span><div class="mini-bar"><div class="mini-fill" style="width:40%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row done"><td class="task-id">T-001</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CTO</td><td class="task-desc">Pixel base code 프론트엔드 삽입</td><td><span class="ice ice-critical">720</span></td></tr><tr class="task-row done"><td class="task-id">T-002</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CTO</td><td class="task-desc">develop 브랜치 푸시</td><td><span class="ice ice-high">648</span></td></tr><tr class="task-row blocked"><td class="task-id">T-003</td><td><span class="badge badge-blocked">🚨</span></td><td class="task-assignee">CTO</td><td class="task-desc">Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</td><td><span class="ice ice-medium">210</span></td></tr><tr class="task-row todo"><td class="task-id">T-004</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">CompleteRegistration 이벤트 테스트</td><td><span class="ice ice-high">560</span></td></tr><tr class="task-row todo"><td class="task-id">T-005</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">CAPI 설정</td><td><span class="ice ice-medium">240</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-004</span><span class="story-title">Meta 앱 라이브 전환</span><span class="badge badge-blocked">🚨 BLOCKED</span><span class="story-progress">0/2</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row blocked"><td class="task-id">T-006</td><td><span class="badge badge-blocked">🚨</span></td><td class="task-assignee">의장</td><td class="task-desc">앱 라이브 모드 전환</td><td><span class="ice ice-low">180</span></td></tr><tr class="task-row todo"><td class="task-id">T-007</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">도메인 인증 확인</td><td><span class="ice ice-medium">294</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-005</span><span class="story-title">캠페인 세팅 마무리</span><span class="badge badge-progress">🔄 IN_PROGRESS</span><span class="story-progress">0/3</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-008</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CMO</td><td class="task-desc">광고 이름 정리 (사본 → A/B/C/D)</td><td><span class="ice ice-high">405</span></td></tr><tr class="task-row todo"><td class="task-id">T-009</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CMO</td><td class="task-desc">광고 D 이미지/카피 교체 확인</td><td><span class="ice ice-high">448</span></td></tr><tr class="task-row todo"><td class="task-id">T-010</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CMO</td><td class="task-desc">검토 후 게시</td><td><span class="ice ice-high">560</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-006</span><span class="story-title">랜딩페이지 CRO 개선</span><span class="badge badge-backlog">📋 BACKLOG</span><span class="story-progress">0/3</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row backlog"><td class="task-id">T-011</td><td><span class="badge badge-backlog">📋</span></td><td class="task-assignee">CTO</td><td class="task-desc">"분석된 영상 0건" → 데모 수치 추가</td><td><span class="ice ice-medium">336</span></td></tr><tr class="task-row backlog"><td class="task-id">T-012</td><td><span class="badge badge-backlog">📋</span></td><td class="task-assignee">CTO</td><td class="task-desc">"스크린샷 준비 중" → 실제 목업 삽입</td><td><span class="ice ice-medium">210</span></td></tr><tr class="task-row backlog"><td class="task-id">T-013</td><td><span class="badge badge-backlog">📋</span></td><td class="task-assignee">CTO</td><td class="task-desc">Hero 헤드라인 UTM 분기 구현</td><td><span class="ice ice-low">120</span></td></tr></tbody></table></div></div></div></div><div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">E-002</span><span class="epic-title">Ultron 시스템 운영</span><span class="priority">🟡 P2</span><span class="epic-status">🔄 IN_PROGRESS</span><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div><span class="progress-text">100%</span></div><div class="epic-body"><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-007</span><span class="story-title">봇 인프라 세팅</span><span class="badge badge-done">✅ DONE</span><span class="story-progress">5/5</span><div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row done"><td class="task-id">T-014</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">Discord CMO 봇 생성 + 배포</td><td><span class="ice ice-high">567</span></td></tr><tr class="task-row done"><td class="task-id">T-015</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">Discord CTO 봇 생성 + 배포</td><td><span class="ice ice-high">567</span></td></tr><tr class="task-row done"><td class="task-id">T-016</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">채널 바인딩 설정</td><td><span class="ice ice-high">576</span></td></tr><tr class="task-row done"><td class="task-id">T-017</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">GOVERNANCE.md 작성</td><td><span class="ice ice-high">448</span></td></tr><tr class="task-row done"><td class="task-id">T-018</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">마케팅 스킬 34개 설치</td><td><span class="ice ice-medium">384</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-008</span><span class="story-title">봇 간 커뮤니케이션</span><span class="badge badge-done">✅ DONE</span><span class="story-progress">3/3</span><div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row done"><td class="task-id">T-019</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">allowBots 설정</td><td><span class="ice ice-high">648</span></td></tr><tr class="task-row done"><td class="task-id">T-020</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">위계/채널 규율 설정</td><td><span class="ice ice-high">448</span></td></tr><tr class="task-row done"><td class="task-id">T-021</td><td><span class="badge badge-done">✅</span></td><td class="task-assignee">CEO</td><td class="task-desc">원탁회의 채널 설정</td><td><span class="ice ice-high">448</span></td></tr></tbody></table></div></div></div></div><div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">E-003</span><span class="epic-title">Planner-Evaluator 아키텍처 도입</span><span class="priority">🟠 P1</span><span class="epic-status">🔄 IN_PROGRESS</span><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><span class="progress-text">0%</span></div><div class="epic-body"><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-009</span><span class="story-title">Planner 단계 도입</span><span class="badge badge-todo">🔲 TODO</span><span class="story-progress">0/3</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-022</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CEO</td><td class="task-desc">Planner 프롬프트 설계 (스펙 자동 생성 템플릿)</td><td><span class="ice ice-high">504</span></td></tr><tr class="task-row todo"><td class="task-id">T-023</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">Planner 에이전트 구현 (Claude Agent SDK or 프롬프트 체인)</td><td><span class="ice ice-medium">336</span></td></tr><tr class="task-row todo"><td class="task-id">T-024</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CEO</td><td class="task-desc">Planner 출력 → TASKS.md 자동 연동 플로우 설계</td><td><span class="ice ice-medium">294</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-010</span><span class="story-title">Evaluator(QA) 에이전트 도입</span><span class="badge badge-todo">🔲 TODO</span><span class="story-progress">0/3</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-025</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">Playwright MCP 기반 QA 에이전트 프롬프트 설계</td><td><span class="ice ice-medium">315</span></td></tr><tr class="task-row todo"><td class="task-id">T-026</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">채점 기준 정의 (기능 완성도, 디자인, 코드 품질, UX)</td><td><span class="ice ice-high">448</span></td></tr><tr class="task-row todo"><td class="task-id">T-027</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">Generator-Evaluator 피드백 루프 구현</td><td><span class="ice ice-medium">240</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-011</span><span class="story-title">스프린트 컨트랙트 시스템</span><span class="badge badge-todo">🔲 TODO</span><span class="story-progress">0/2</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-028</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CEO</td><td class="task-desc">TASKS.md 태스크 포맷에 "완료 조건" 필드 추가</td><td><span class="ice ice-high">504</span></td></tr><tr class="task-row todo"><td class="task-id">T-029</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CEO</td><td class="task-desc">기존 TODO 태스크에 완료 조건 소급 적용</td><td><span class="ice ice-medium">336</span></td></tr></tbody></table></div></div></div></div><div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">E-004</span><span class="epic-title">대시보드 고도화 + 광고 관리 시스템</span><span class="priority">🟠 P1</span><span class="epic-status">🔄 IN_PROGRESS</span><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><span class="progress-text">0%</span></div><div class="epic-body"><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-012</span><span class="story-title">대시보드 탭 시스템 도입</span><span class="badge badge-todo">🔲 TODO</span><span class="story-progress">0/2</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-030</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">탭 UI 컴포넌트 구현 (Tasks / Ad Manager)</td><td><span class="ice ice-high">576</span></td></tr><tr class="task-row todo"><td class="task-id">T-031</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">기존 태스크 뷰를 Tasks 탭으로 래핑</td><td><span class="ice ice-high">567</span></td></tr></tbody></table></div></div><div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">S-013</span><span class="story-title">광고 관리(Ad Manager) 탭</span><span class="badge badge-todo">🔲 TODO</span><span class="story-progress">0/5</span><div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody><tr class="task-row todo"><td class="task-id">T-032</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CEO</td><td class="task-desc">Ad Manager 스펙 정의 (UTM 빌더, 캠페인 목록, 성과 뷰)</td><td><span class="ice ice-high">504</span></td></tr><tr class="task-row todo"><td class="task-id">T-033</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">UTM 빌더 UI (URL + 파라미터 생성/복사)</td><td><span class="ice ice-high">448</span></td></tr><tr class="task-row todo"><td class="task-id">T-034</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">캠페인 관리 뷰 (캠페인명, 상태, 예산, ROAS)</td><td><span class="ice ice-medium">336</span></td></tr><tr class="task-row todo"><td class="task-id">T-035</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">광고 소재 관리 (A/B/C/D 소재 + 성과 비교)</td><td><span class="ice ice-medium">294</span></td></tr><tr class="task-row todo"><td class="task-id">T-036</td><td><span class="badge badge-todo">🔲</span></td><td class="task-assignee">CTO</td><td class="task-desc">데이터 저장 (JSON 파일 기반, 빌드 시 임베드)</td><td><span class="ice ice-medium">392</span></td></tr></tbody></table></div></div></div></div>
+</div>
+
+<!-- TAB: Campaigns -->
+<div id="tab-campaigns" class="tab-content">
+<div class="section-title">📢 진행 중인 캠페인</div>
+
+<div class="campaign-card">
+  <h4><span class="tag tag-active">ACTIVE</span> [WakaLab] 숏폼분석툴_AB테스트_2503</h4>
+  <div class="campaign-meta">
+    <span>📅 2026-03-27 ~</span>
+    <span>💰 일 예산 ₩30,000</span>
+    <span>🎯 전환 목표: CompleteRegistration</span>
+    <span>📍 Wakawaka 광고 계정</span>
+  </div>
+  <div class="section-title" style="margin-top:8px;font-size:.85rem">광고 소재 (4종 A/B 테스트)</div>
+  <div class="creative-grid">
+    <div class="creative">
+      <div class="creative-name">소재 A — 데이터 중심</div>
+      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
+      <div class="creative-copy">📊 "경쟁사 숏폼, 왜 잘 되는지 데이터로 보여드립니다"<br>CTA: 무료 분석 시작하기</div>
     </div>
-    <div class="epic-body">
-      <div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-001</span>
-      <span class="story-title">광고 소재 제작</span>
-      <span class="badge badge-done">✅ DONE</span>
-      <span class="story-progress">0/0</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    <div class="creative">
+      <div class="creative-name">소재 B — 고통 중심</div>
+      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
+      <div class="creative-copy">😤 "숏폼 매번 감으로 만들고 계신가요?"<br>CTA: AI가 구조를 알려드립니다</div>
     </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div class="creative">
+      <div class="creative-name">소재 C — 비교 중심</div>
+      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
+      <div class="creative-copy">🔍 "잘 되는 영상 vs 내 영상, 뭐가 다를까?"<br>CTA: 지금 비교해보기</div>
     </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-002</span>
-      <span class="story-title">캠페인 구조 설계</span>
-      <span class="badge badge-done">✅ DONE</span>
-      <span class="story-progress">0/0</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-003</span>
-      <span class="story-title">Meta Pixel 설치</span>
-      <span class="badge badge-progress">🔄 IN_PROGRESS</span>
-      <span class="story-progress">2/5</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:40%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row done">
-    <td class="task-id">T-001</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Pixel base code 프론트엔드 삽입</td>
-    <td class="task-ice"><span class="ice ice-critical">720</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-002</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">develop 브랜치 푸시</td>
-    <td class="task-ice"><span class="ice ice-high">648</span></td>
-  </tr><tr class="task-row blocked">
-    <td class="task-id">T-003</td>
-    <td class="task-status"><span class="badge badge-blocked">🚨</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖)</td>
-    <td class="task-ice"><span class="ice ice-medium">210</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-004</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">CompleteRegistration 이벤트 테스트</td>
-    <td class="task-ice"><span class="ice ice-high">560</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-005</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">CAPI 설정</td>
-    <td class="task-ice"><span class="ice ice-medium">240</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-004</span>
-      <span class="story-title">Meta 앱 라이브 전환</span>
-      <span class="badge badge-blocked">🚨 BLOCKED</span>
-      <span class="story-progress">0/2</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row blocked">
-    <td class="task-id">T-006</td>
-    <td class="task-status"><span class="badge badge-blocked">🚨</span></td>
-    <td class="task-assignee">의장</td>
-    <td class="task-desc">앱 라이브 모드 전환</td>
-    <td class="task-ice"><span class="ice ice-low">180</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-007</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">도메인 인증 확인</td>
-    <td class="task-ice"><span class="ice ice-medium">294</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-005</span>
-      <span class="story-title">캠페인 세팅 마무리</span>
-      <span class="badge badge-progress">🔄 IN_PROGRESS</span>
-      <span class="story-progress">0/3</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-008</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CMO</td>
-    <td class="task-desc">광고 이름 정리 (사본 → A/B/C/D)</td>
-    <td class="task-ice"><span class="ice ice-high">405</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-009</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CMO</td>
-    <td class="task-desc">광고 D 이미지/카피 교체 확인</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-010</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CMO</td>
-    <td class="task-desc">검토 후 게시</td>
-    <td class="task-ice"><span class="ice ice-high">560</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-006</span>
-      <span class="story-title">랜딩페이지 CRO 개선</span>
-      <span class="badge badge-backlog">📋 BACKLOG</span>
-      <span class="story-progress">0/3</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row backlog">
-    <td class="task-id">T-011</td>
-    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">"분석된 영상 0건" → 데모 수치 추가</td>
-    <td class="task-ice"><span class="ice ice-medium">336</span></td>
-  </tr><tr class="task-row backlog">
-    <td class="task-id">T-012</td>
-    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">"스크린샷 준비 중" → 실제 목업 삽입</td>
-    <td class="task-ice"><span class="ice ice-medium">210</span></td>
-  </tr><tr class="task-row backlog">
-    <td class="task-id">T-013</td>
-    <td class="task-status"><span class="badge badge-backlog">📋</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Hero 헤드라인 UTM 분기 구현</td>
-    <td class="task-ice"><span class="ice ice-low">120</span></td>
-  </tr></tbody>
-      </table>
+    <div class="creative">
+      <div class="creative-name">소재 D — 결과 중심</div>
+      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
+      <div class="creative-copy">🚀 "분석만 했는데 조회수 3배 올랐습니다"<br>CTA: 무료 체험 시작</div>
     </div>
   </div>
-    </div>
-  </div><div class="epic">
-    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="epic-id">E-002</span>
-      <span class="epic-title">Ultron 시스템 운영</span>
-      <span class="priority">🟡 P2</span>
-      <span class="epic-status">🔄 IN_PROGRESS</span>
-      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
-      <span class="progress-text">100%</span>
-    </div>
-    <div class="epic-body">
-      <div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-007</span>
-      <span class="story-title">봇 인프라 세팅</span>
-      <span class="badge badge-done">✅ DONE</span>
-      <span class="story-progress">5/5</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row done">
-    <td class="task-id">T-014</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">Discord CMO 봇 생성 + 배포</td>
-    <td class="task-ice"><span class="ice ice-high">567</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-015</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">Discord CTO 봇 생성 + 배포</td>
-    <td class="task-ice"><span class="ice ice-high">567</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-016</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">채널 바인딩 설정</td>
-    <td class="task-ice"><span class="ice ice-high">576</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-017</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">GOVERNANCE.md 작성</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-018</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">마케팅 스킬 34개 설치</td>
-    <td class="task-ice"><span class="ice ice-medium">384</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-008</span>
-      <span class="story-title">봇 간 커뮤니케이션</span>
-      <span class="badge badge-done">✅ DONE</span>
-      <span class="story-progress">3/3</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:100%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row done">
-    <td class="task-id">T-019</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">allowBots 설정</td>
-    <td class="task-ice"><span class="ice ice-high">648</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-020</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">위계/채널 규율 설정</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr><tr class="task-row done">
-    <td class="task-id">T-021</td>
-    <td class="task-status"><span class="badge badge-done">✅</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">원탁회의 채널 설정</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr></tbody>
-      </table>
+</div>
+
+<div class="campaign-card">
+  <h4><span class="tag tag-draft">DRAFT</span> [WakaLab] 리타겟팅_방문자_2504</h4>
+  <div class="campaign-meta">
+    <span>📅 예정: 2026-04</span>
+    <span>🎯 전환 목표: Purchase</span>
+    <span>📍 Wakawaka 광고 계정</span>
+  </div>
+  <div class="creative-grid">
+    <div class="creative">
+      <div class="creative-name">리타겟 A — 무료 체험 강조</div>
+      <div class="creative-status"><span class="tag tag-draft">준비중</span></div>
+      <div class="creative-copy">🎉 "아직 안 써보셨나요? 1개월 무료!"</div>
     </div>
   </div>
+</div>
+</div>
+
+<!-- TAB: UTM Builder -->
+<div id="tab-utm" class="tab-content">
+<div class="utm-form">
+  <h3>🔗 UTM 파라미터 빌더</h3>
+  <div class="utm-grid">
+    <div class="utm-field">
+      <label>Base URL *</label>
+      <input type="text" id="utm-url" value="https://wakalab.io" placeholder="https://wakalab.io" oninput="buildUTM()">
     </div>
-  </div><div class="epic">
-    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="epic-id">E-003</span>
-      <span class="epic-title">Planner-Evaluator 아키텍처 도입</span>
-      <span class="priority">🟠 P1</span>
-      <span class="epic-status">🔄 IN_PROGRESS</span>
-      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
-      <span class="progress-text">0%</span>
+    <div class="utm-field">
+      <label>Campaign Source * (utm_source)</label>
+      <select id="utm-source" onchange="buildUTM()">
+        <option value="meta">meta</option>
+        <option value="google">google</option>
+        <option value="naver">naver</option>
+        <option value="tiktok">tiktok</option>
+        <option value="instagram">instagram</option>
+        <option value="youtube">youtube</option>
+        <option value="direct">direct</option>
+      </select>
     </div>
-    <div class="epic-body">
-      <div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-009</span>
-      <span class="story-title">Planner 단계 도입</span>
-      <span class="badge badge-todo">🔲 TODO</span>
-      <span class="story-progress">0/3</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    <div class="utm-field">
+      <label>Campaign Medium * (utm_medium)</label>
+      <select id="utm-medium" onchange="buildUTM()">
+        <option value="paid_social">paid_social</option>
+        <option value="cpc">cpc</option>
+        <option value="display">display</option>
+        <option value="email">email</option>
+        <option value="organic">organic</option>
+        <option value="referral">referral</option>
+      </select>
     </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-022</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">Planner 프롬프트 설계 (스펙 자동 생성 템플릿)</td>
-    <td class="task-ice"><span class="ice ice-high">504</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-023</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Planner 에이전트 구현 (Claude Agent SDK or 프롬프트 체인)</td>
-    <td class="task-ice"><span class="ice ice-medium">336</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-024</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">Planner 출력 → TASKS.md 자동 연동 플로우 설계</td>
-    <td class="task-ice"><span class="ice ice-medium">294</span></td>
-  </tr></tbody>
-      </table>
+    <div class="utm-field">
+      <label>Campaign Name * (utm_campaign)</label>
+      <input type="text" id="utm-campaign" value="wakalab_ab_test_2503" placeholder="campaign_name" oninput="buildUTM()">
     </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-010</span>
-      <span class="story-title">Evaluator(QA) 에이전트 도입</span>
-      <span class="badge badge-todo">🔲 TODO</span>
-      <span class="story-progress">0/3</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
+    <div class="utm-field">
+      <label>Campaign Term (utm_term)</label>
+      <input type="text" id="utm-term" placeholder="keyword" oninput="buildUTM()">
     </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-025</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Playwright MCP 기반 QA 에이전트 프롬프트 설계</td>
-    <td class="task-ice"><span class="ice ice-medium">315</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-026</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">채점 기준 정의 (기능 완성도, 디자인, 코드 품질, UX)</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-027</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">Generator-Evaluator 피드백 루프 구현</td>
-    <td class="task-ice"><span class="ice ice-medium">240</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-011</span>
-      <span class="story-title">스프린트 컨트랙트 시스템</span>
-      <span class="badge badge-todo">🔲 TODO</span>
-      <span class="story-progress">0/2</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-028</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">TASKS.md 태스크 포맷에 "완료 조건" 필드 추가</td>
-    <td class="task-ice"><span class="ice ice-high">504</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-029</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">기존 TODO 태스크에 완료 조건 소급 적용</td>
-    <td class="task-ice"><span class="ice ice-medium">336</span></td>
-  </tr></tbody>
-      </table>
+    <div class="utm-field">
+      <label>Campaign Content (utm_content)</label>
+      <input type="text" id="utm-content" placeholder="ad_variant_a" oninput="buildUTM()">
     </div>
   </div>
-    </div>
-  </div><div class="epic">
-    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="epic-id">E-004</span>
-      <span class="epic-title">대시보드 고도화 + 광고 관리 시스템</span>
-      <span class="priority">🟠 P1</span>
-      <span class="epic-status">🔄 IN_PROGRESS</span>
-      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
-      <span class="progress-text">0%</span>
-    </div>
-    <div class="epic-body">
-      <div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-012</span>
-      <span class="story-title">대시보드 탭 시스템 도입</span>
-      <span class="badge badge-todo">🔲 TODO</span>
-      <span class="story-progress">0/2</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-030</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">탭 UI 컴포넌트 구현 (Tasks / Ad Manager)</td>
-    <td class="task-ice"><span class="ice ice-high">576</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-031</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">기존 태스크 뷰를 Tasks 탭으로 래핑</td>
-    <td class="task-ice"><span class="ice ice-high">567</span></td>
-  </tr></tbody>
-      </table>
-    </div>
-  </div><div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id">S-013</span>
-      <span class="story-title">광고 관리(Ad Manager) 탭</span>
-      <span class="badge badge-todo">🔲 TODO</span>
-      <span class="story-progress">0/5</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:0%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead>
-        <tbody><tr class="task-row todo">
-    <td class="task-id">T-032</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CEO</td>
-    <td class="task-desc">Ad Manager 스펙 정의 (UTM 빌더, 캠페인 목록, 성과 뷰)</td>
-    <td class="task-ice"><span class="ice ice-high">504</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-033</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">UTM 빌더 UI (URL + 파라미터 생성/복사)</td>
-    <td class="task-ice"><span class="ice ice-high">448</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-034</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">캠페인 관리 뷰 (캠페인명, 상태, 예산, ROAS)</td>
-    <td class="task-ice"><span class="ice ice-medium">336</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-035</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">광고 소재 관리 (A/B/C/D 소재 + 성과 비교)</td>
-    <td class="task-ice"><span class="ice ice-medium">294</span></td>
-  </tr><tr class="task-row todo">
-    <td class="task-id">T-036</td>
-    <td class="task-status"><span class="badge badge-todo">🔲</span></td>
-    <td class="task-assignee">CTO</td>
-    <td class="task-desc">데이터 저장 (JSON 파일 기반, 빌드 시 임베드)</td>
-    <td class="task-ice"><span class="ice ice-medium">392</span></td>
-  </tr></tbody>
-      </table>
-    </div>
+  <div class="utm-result" id="utm-result"></div>
+  <div class="utm-actions">
+    <button class="utm-btn utm-btn-primary" onclick="copyUTM()">📋 클립보드 복사</button>
+    <button class="utm-btn utm-btn-secondary" onclick="resetUTM()">🔄 초기화</button>
   </div>
-    </div>
+</div>
+
+<div class="panel">
+  <h3>📌 최근 생성한 UTM 링크</h3>
+  <div id="utm-history" style="font-size:.8rem;color:var(--muted)">
+    <p>아직 생성된 링크가 없습니다. 위에서 URL을 생성해보세요.</p>
   </div>
+</div>
+</div>
+
+<div class="copy-toast" id="copy-toast">✅ 클립보드에 복사됨!</div>
 
 <script>
-function filterBy(role) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
   event.target.classList.add('active');
-  document.querySelectorAll('.task-row').forEach(row => {
-    if (role === 'all') { row.style.display = ''; return; }
-    const assignee = row.querySelector('.task-assignee')?.textContent || '';
-    row.style.display = assignee.includes(role) ? '' : 'none';
+}
+function filterBy(role){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.task-row').forEach(row=>{
+    if(role==='all'){row.style.display='';return;}
+    const a=row.querySelector('.task-assignee')?.textContent||'';
+    row.style.display=a.includes(role)?'':'none';
   });
 }
+function buildUTM(){
+  const base=document.getElementById('utm-url').value.trim();
+  const src=document.getElementById('utm-source').value;
+  const med=document.getElementById('utm-medium').value;
+  const camp=document.getElementById('utm-campaign').value.trim();
+  const term=document.getElementById('utm-term').value.trim();
+  const content=document.getElementById('utm-content').value.trim();
+  if(!base)return;
+  const p=new URLSearchParams();
+  if(src)p.set('utm_source',src);
+  if(med)p.set('utm_medium',med);
+  if(camp)p.set('utm_campaign',camp);
+  if(term)p.set('utm_term',term);
+  if(content)p.set('utm_content',content);
+  const url=base+(base.includes('?')?'&':'?')+p.toString();
+  document.getElementById('utm-result').textContent=url;
+}
+function copyUTM(){
+  const url=document.getElementById('utm-result').textContent;
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>{
+    const toast=document.getElementById('copy-toast');
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),2000);
+    // Add to history
+    const hist=document.getElementById('utm-history');
+    const first=hist.querySelector('p');
+    if(first&&first.textContent.includes('아직'))hist.innerHTML='';
+    const item=document.createElement('div');
+    item.style.cssText='padding:6px 0;border-bottom:1px solid var(--border);word-break:break-all';
+    item.innerHTML='<span style="color:var(--blue)">'+url+'</span> <span style="color:var(--muted);font-size:.7rem">'+new Date().toLocaleTimeString('ko-KR')+'</span>';
+    hist.prepend(item);
+  });
+}
+function resetUTM(){
+  document.getElementById('utm-url').value='https://wakalab.io';
+  document.getElementById('utm-source').value='meta';
+  document.getElementById('utm-medium').value='paid_social';
+  document.getElementById('utm-campaign').value='';
+  document.getElementById('utm-term').value='';
+  document.getElementById('utm-content').value='';
+  document.getElementById('utm-result').textContent='';
+}
+// Init UTM on load
+buildUTM();
 </script>
 </body>
 </html>
