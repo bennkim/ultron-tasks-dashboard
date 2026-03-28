@@ -1,18 +1,15 @@
 #!/usr/bin/env node
 /**
- * TASKS.md → Static Dashboard HTML (multi-tab)
+ * TASKS.md + ads-data.json → Static Dashboard HTML (2-tab: Tasks / Ad Manager)
  * Zero dependencies — Node.js stdlib only
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 
+// ─── Parse TASKS.md ───
 const md = readFileSync('TASKS.md', 'utf-8');
 const lines = md.split('\n');
-
-// --- Parse ---
 const epics = [];
-let currentEpic = null;
-let currentStory = null;
-let inTable = false;
+let currentEpic = null, currentStory = null, inTable = false;
 
 for (let i = 0; i < lines.length; i++) {
   const line = lines[i];
@@ -70,7 +67,62 @@ function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td 
 function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">${s.id}</span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
 function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">${e.id}</span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
 
+// ─── Parse ads-data.json ───
+const adsData = JSON.parse(readFileSync('ads-data.json', 'utf-8'));
+
+function statusTag(s) {
+  const cls = { live:'tag-active', active:'tag-active', draft:'tag-draft', paused:'tag-paused', ended:'tag-ended' }[s] || 'tag-draft';
+  const label = { live:'🟢 라이브', active:'🟢 활성', draft:'📝 준비중', paused:'⏸️ 일시정지', ended:'⏹️ 종료' }[s] || s;
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+function fmt(n) { return n.toLocaleString('ko-KR'); }
+function fmtWon(n) { return '₩' + fmt(n); }
+
+function renderCreativeRow(c) {
+  return `<tr>
+    <td><strong>${c.name}</strong></td>
+    <td>${statusTag(c.status)}</td>
+    <td class="num">${fmt(c.impressions)}</td>
+    <td class="num">${fmt(c.clicks)}</td>
+    <td class="num">${c.ctr.toFixed(2)}%</td>
+    <td class="num">${c.cpc > 0 ? fmtWon(c.cpc) : '—'}</td>
+    <td class="num conv">${c.conversions}</td>
+  </tr>`;
+}
+
+function renderCampaign(cam) {
+  const roasColor = cam.roas >= 3 ? 'var(--green)' : cam.roas >= 1 ? 'var(--yellow)' : 'var(--red)';
+  const spentPct = cam.budget > 0 ? Math.round((cam.spent / cam.budget) * 100) : 0;
+  return `
+<div class="campaign-card">
+  <div class="campaign-header">
+    <h4>${statusTag(cam.status)} ${cam.name}</h4>
+    <span class="cam-id">${cam.id}</span>
+  </div>
+  <div class="cam-kpi-grid">
+    <div class="cam-kpi"><div class="cam-kpi-label">예산</div><div class="cam-kpi-value">${fmtWon(cam.budget)}</div></div>
+    <div class="cam-kpi"><div class="cam-kpi-label">소진액</div><div class="cam-kpi-value">${fmtWon(cam.spent)}<div class="cam-kpi-bar"><div class="cam-kpi-fill" style="width:${spentPct}%"></div></div></div></div>
+    <div class="cam-kpi"><div class="cam-kpi-label">전환</div><div class="cam-kpi-value conv">${cam.conversions}건</div></div>
+    <div class="cam-kpi"><div class="cam-kpi-label">매출</div><div class="cam-kpi-value">${fmtWon(cam.revenue)}</div></div>
+    <div class="cam-kpi"><div class="cam-kpi-label">ROAS</div><div class="cam-kpi-value" style="color:${roasColor}">${cam.roas > 0 ? cam.roas.toFixed(2) + 'x' : '—'}</div></div>
+    <div class="cam-kpi"><div class="cam-kpi-label">목표</div><div class="cam-kpi-value" style="font-size:.85rem">${cam.objective}</div></div>
+  </div>
+  <div class="creative-section">
+    <h5>🎨 광고 소재 비교 (${cam.creatives.length}종)</h5>
+    <table class="creative-table">
+      <thead><tr><th>소재</th><th>상태</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>전환</th></tr></thead>
+      <tbody>${cam.creatives.map(renderCreativeRow).join('')}</tbody>
+    </table>
+  </div>
+  <div class="cam-meta">
+    <span>📍 ${cam.platform} · ${cam.account}</span>
+    <span>📅 ${cam.startDate}${cam.endDate ? ' ~ ' + cam.endDate : ' ~'}</span>
+  </div>
+</div>`;
+}
+
 const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+const adsJson = JSON.stringify(adsData);
 
 const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -85,9 +137,9 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .subtitle{color:var(--muted);font-size:.8rem;margin-bottom:20px}
 
 /* Tabs */
-.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0}
-.tab{background:none;border:none;color:var(--muted);padding:10px 18px;font-size:.85rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:500}
-.tab:hover{color:var(--text)}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab{background:none;border:none;color:var(--muted);padding:12px 24px;font-size:.9rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:600;letter-spacing:.3px}
+.tab:hover{color:var(--text);background:rgba(88,166,255,.05)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-content{display:none}.tab-content.active{display:block}
 
@@ -153,14 +205,50 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .rank-score{margin-left:auto}
 .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 
+/* ─── Ad Manager ─── */
+.ad-sub-tabs{display:flex;gap:4px;margin-bottom:20px}
+.ad-sub-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:500;transition:all .15s}
+.ad-sub-tab:hover{color:var(--text);border-color:var(--text)}
+.ad-sub-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ad-sub-content{display:none}.ad-sub-content.active{display:block}
+
+/* Campaign Cards */
+.campaign-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.campaign-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.campaign-header h4{font-size:.95rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cam-id{font-size:.7rem;color:var(--muted);font-family:monospace}
+.cam-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+.cam-kpi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.cam-kpi-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.cam-kpi-value{font-size:1.1rem;font-weight:700}
+.cam-kpi-value.conv{color:var(--green)}
+.cam-kpi-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
+.cam-kpi-fill{height:100%;background:var(--blue);border-radius:2px}
+.cam-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.75rem;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+
+.creative-section{margin-top:12px}
+.creative-section h5{font-size:.85rem;margin-bottom:10px;font-weight:600}
+.creative-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.creative-table th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase}
+.creative-table td{padding:8px;border-bottom:1px solid #21262d}
+.creative-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.creative-table .conv{color:var(--green);font-weight:700}
+
+.tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:6px;font-weight:500}
+.tag-active{background:rgba(63,185,80,.15);color:var(--green)}
+.tag-draft{background:rgba(139,148,158,.15);color:var(--muted)}
+.tag-paused{background:rgba(210,153,34,.15);color:var(--yellow)}
+.tag-ended{background:rgba(248,81,73,.15);color:var(--red)}
+
 /* UTM Builder */
 .utm-form{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
 .utm-form h3{font-size:.95rem;margin-bottom:16px}
 .utm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.utm-field label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.utm-field input,.utm-field select{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none}
+.utm-field label{display:block;font-size:.7rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.utm-field input,.utm-field select{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none;transition:border-color .15s}
 .utm-field input:focus,.utm-field select:focus{border-color:var(--blue)}
-.utm-result{margin-top:16px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:.8rem;word-break:break-all;color:var(--blue);min-height:40px}
+.utm-field.full{grid-column:1/-1}
+.utm-result{margin-top:16px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:.8rem;word-break:break-all;color:var(--blue);min-height:40px;font-family:monospace}
 .utm-actions{display:flex;gap:8px;margin-top:12px}
 .utm-btn{padding:8px 20px;border-radius:8px;font-size:.8rem;font-weight:500;cursor:pointer;border:none;transition:all .15s}
 .utm-btn-primary{background:var(--blue);color:#fff}.utm-btn-primary:hover{opacity:.85}
@@ -168,22 +256,10 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .copy-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
 .copy-toast.show{opacity:1}
 
-/* Campaign View */
-.campaign-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
-.campaign-card h4{font-size:.9rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.campaign-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:.8rem;color:var(--muted)}
-.campaign-meta span{display:flex;align-items:center;gap:4px}
-.creative-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.creative{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
-.creative-name{font-size:.85rem;font-weight:600;margin-bottom:4px}
-.creative-status{font-size:.75rem;color:var(--muted)}
-.creative-copy{font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.4}
-.tag{display:inline-block;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-right:4px}
-.tag-active{background:rgba(63,185,80,.15);color:var(--green)}
-.tag-draft{background:rgba(139,148,158,.15);color:var(--muted)}
-.tag-paused{background:rgba(210,153,34,.15);color:var(--yellow)}
+/* Ad Manager Summary */
+.ad-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
 
-@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.creative-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.cam-kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -191,12 +267,11 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 <p class="subtitle">마지막 빌드: ${now}</p>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('tasks')">📋 태스크</button>
-  <button class="tab" onclick="switchTab('campaigns')">📢 캠페인</button>
-  <button class="tab" onclick="switchTab('utm')">🔗 UTM 빌더</button>
+  <button class="tab active" onclick="switchTab('tasks',this)">📋 Tasks</button>
+  <button class="tab" onclick="switchTab('admanager',this)">📢 Ad Manager</button>
 </div>
 
-<!-- TAB: Tasks -->
+<!-- ══════════ TAB: Tasks ══════════ -->
 <div id="tab-tasks" class="tab-content active">
 <div class="summary">
   <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">전체</div></div>
@@ -211,81 +286,71 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
   <div class="panel"><h3>🏆 ICE 랭킹 (미완료 Top 10)</h3>${iceRanking.map((t,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-id">${t.id}</span><span>${t.desc.substring(0,30)}${t.desc.length>30?'…':''}</span><span class="rank-score"><span class="ice ${iceClass(t.iceScore)}">${t.iceScore}</span></span></div>`).join('')}</div>
 </div>
 <div class="filters">
-  <button class="filter-btn active" onclick="filterBy('all')">전체</button>
-  <button class="filter-btn" onclick="filterBy('CEO')">🤖 CEO</button>
-  <button class="filter-btn" onclick="filterBy('CMO')">🎯 CMO</button>
-  <button class="filter-btn" onclick="filterBy('CTO')">💻 CTO</button>
-  <button class="filter-btn" onclick="filterBy('의장')">👑 의장</button>
+  <button class="filter-btn active" onclick="filterBy('all',this)">전체</button>
+  <button class="filter-btn" onclick="filterBy('CEO',this)">🤖 CEO</button>
+  <button class="filter-btn" onclick="filterBy('CMO',this)">🎯 CMO</button>
+  <button class="filter-btn" onclick="filterBy('CTO',this)">💻 CTO</button>
+  <button class="filter-btn" onclick="filterBy('의장',this)">👑 의장</button>
 </div>
 <div class="section-title">에픽</div>
 ${epics.map(renderEpic).join('')}
 </div>
 
-<!-- TAB: Campaigns -->
-<div id="tab-campaigns" class="tab-content">
-<div class="section-title">📢 진행 중인 캠페인</div>
+<!-- ══════════ TAB: Ad Manager ══════════ -->
+<div id="tab-admanager" class="tab-content">
 
-<div class="campaign-card">
-  <h4><span class="tag tag-active">ACTIVE</span> [WakaLab] 숏폼분석툴_AB테스트_2503</h4>
-  <div class="campaign-meta">
-    <span>📅 2026-03-27 ~</span>
-    <span>💰 일 예산 ₩30,000</span>
-    <span>🎯 전환 목표: CompleteRegistration</span>
-    <span>📍 Wakawaka 광고 계정</span>
-  </div>
-  <div class="section-title" style="margin-top:8px;font-size:.85rem">광고 소재 (4종 A/B 테스트)</div>
-  <div class="creative-grid">
-    <div class="creative">
-      <div class="creative-name">소재 A — 데이터 중심</div>
-      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
-      <div class="creative-copy">📊 "경쟁사 숏폼, 왜 잘 되는지 데이터로 보여드립니다"<br>CTA: 무료 분석 시작하기</div>
-    </div>
-    <div class="creative">
-      <div class="creative-name">소재 B — 고통 중심</div>
-      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
-      <div class="creative-copy">😤 "숏폼 매번 감으로 만들고 계신가요?"<br>CTA: AI가 구조를 알려드립니다</div>
-    </div>
-    <div class="creative">
-      <div class="creative-name">소재 C — 비교 중심</div>
-      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
-      <div class="creative-copy">🔍 "잘 되는 영상 vs 내 영상, 뭐가 다를까?"<br>CTA: 지금 비교해보기</div>
-    </div>
-    <div class="creative">
-      <div class="creative-name">소재 D — 결과 중심</div>
-      <div class="creative-status"><span class="tag tag-active">검토중</span></div>
-      <div class="creative-copy">🚀 "분석만 했는데 조회수 3배 올랐습니다"<br>CTA: 무료 체험 시작</div>
-    </div>
-  </div>
+<div class="ad-sub-tabs">
+  <button class="ad-sub-tab active" onclick="switchAdSub('campaigns',this)">📊 캠페인 관리</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('creatives',this)">🎨 소재 비교</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('utm',this)">🔗 UTM 빌더</button>
 </div>
 
-<div class="campaign-card">
-  <h4><span class="tag tag-draft">DRAFT</span> [WakaLab] 리타겟팅_방문자_2504</h4>
-  <div class="campaign-meta">
-    <span>📅 예정: 2026-04</span>
-    <span>🎯 전환 목표: Purchase</span>
-    <span>📍 Wakawaka 광고 계정</span>
-  </div>
-  <div class="creative-grid">
-    <div class="creative">
-      <div class="creative-name">리타겟 A — 무료 체험 강조</div>
-      <div class="creative-status"><span class="tag tag-draft">준비중</span></div>
-      <div class="creative-copy">🎉 "아직 안 써보셨나요? 1개월 무료!"</div>
-    </div>
-  </div>
+<!-- Sub: Campaigns -->
+<div id="ad-campaigns" class="ad-sub-content active">
+<div class="ad-summary">
+  <div class="stat"><div class="stat-value">${adsData.campaigns.length}</div><div class="stat-label">캠페인</div></div>
+  <div class="stat stat-done"><div class="stat-value">${adsData.campaigns.filter(c=>c.status==='live').length}</div><div class="stat-label">🟢 라이브</div></div>
+  <div class="stat"><div class="stat-value">${fmtWon(adsData.campaigns.reduce((s,c)=>s+c.spent,0))}</div><div class="stat-label">총 소진액</div></div>
+  <div class="stat"><div class="stat-value">${fmtWon(adsData.campaigns.reduce((s,c)=>s+c.revenue,0))}</div><div class="stat-label">총 매출</div></div>
+  <div class="stat stat-done"><div class="stat-value">${adsData.campaigns.reduce((s,c)=>s+c.conversions,0)}건</div><div class="stat-label">총 전환</div></div>
+</div>
+${adsData.campaigns.map(renderCampaign).join('')}
+</div>
+
+<!-- Sub: Creative Comparison -->
+<div id="ad-creatives" class="ad-sub-content">
+<div class="section-title">🎨 전체 소재 성과 비교</div>
+<div class="panel">
+<table class="creative-table">
+  <thead><tr><th>캠페인</th><th>소재</th><th>상태</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>전환</th></tr></thead>
+  <tbody>
+${adsData.campaigns.flatMap(cam => cam.creatives.map(c => `
+    <tr>
+      <td style="font-size:.75rem;color:var(--muted)">${cam.id}</td>
+      <td><strong>${c.name}</strong><br><span style="font-size:.7rem;color:var(--muted)">${c.copy}</span></td>
+      <td>${statusTag(c.status)}</td>
+      <td class="num">${fmt(c.impressions)}</td>
+      <td class="num">${fmt(c.clicks)}</td>
+      <td class="num">${c.ctr.toFixed(2)}%</td>
+      <td class="num">${c.cpc > 0 ? fmtWon(c.cpc) : '—'}</td>
+      <td class="num conv">${c.conversions}</td>
+    </tr>`)).join('')}
+  </tbody>
+</table>
 </div>
 </div>
 
-<!-- TAB: UTM Builder -->
-<div id="tab-utm" class="tab-content">
+<!-- Sub: UTM Builder -->
+<div id="ad-utm" class="ad-sub-content">
 <div class="utm-form">
   <h3>🔗 UTM 파라미터 빌더</h3>
   <div class="utm-grid">
-    <div class="utm-field">
+    <div class="utm-field full">
       <label>Base URL *</label>
       <input type="text" id="utm-url" value="https://wakalab.io" placeholder="https://wakalab.io" oninput="buildUTM()">
     </div>
     <div class="utm-field">
-      <label>Campaign Source * (utm_source)</label>
+      <label>utm_source *</label>
       <select id="utm-source" onchange="buildUTM()">
         <option value="meta">meta</option>
         <option value="google">google</option>
@@ -297,7 +362,7 @@ ${epics.map(renderEpic).join('')}
       </select>
     </div>
     <div class="utm-field">
-      <label>Campaign Medium * (utm_medium)</label>
+      <label>utm_medium *</label>
       <select id="utm-medium" onchange="buildUTM()">
         <option value="paid_social">paid_social</option>
         <option value="cpc">cpc</option>
@@ -308,45 +373,52 @@ ${epics.map(renderEpic).join('')}
       </select>
     </div>
     <div class="utm-field">
-      <label>Campaign Name * (utm_campaign)</label>
-      <input type="text" id="utm-campaign" value="wakalab_ab_test_2503" placeholder="campaign_name" oninput="buildUTM()">
+      <label>utm_campaign *</label>
+      <input type="text" id="utm-campaign" value="" placeholder="wakalab_ab_test_2503" oninput="buildUTM()">
     </div>
     <div class="utm-field">
-      <label>Campaign Term (utm_term)</label>
+      <label>utm_content</label>
+      <input type="text" id="utm-content" placeholder="creative_a" oninput="buildUTM()">
+    </div>
+    <div class="utm-field">
+      <label>utm_term</label>
       <input type="text" id="utm-term" placeholder="keyword" oninput="buildUTM()">
-    </div>
-    <div class="utm-field">
-      <label>Campaign Content (utm_content)</label>
-      <input type="text" id="utm-content" placeholder="ad_variant_a" oninput="buildUTM()">
     </div>
   </div>
   <div class="utm-result" id="utm-result"></div>
   <div class="utm-actions">
-    <button class="utm-btn utm-btn-primary" onclick="copyUTM()">📋 클립보드 복사</button>
+    <button class="utm-btn utm-btn-primary" onclick="copyUTM()">📋 복사</button>
     <button class="utm-btn utm-btn-secondary" onclick="resetUTM()">🔄 초기화</button>
   </div>
 </div>
-
 <div class="panel">
   <h3>📌 최근 생성한 UTM 링크</h3>
   <div id="utm-history" style="font-size:.8rem;color:var(--muted)">
-    <p>아직 생성된 링크가 없습니다. 위에서 URL을 생성해보세요.</p>
+    <p>아직 생성된 링크가 없습니다.</p>
   </div>
 </div>
+</div>
+
 </div>
 
 <div class="copy-toast" id="copy-toast">✅ 클립보드에 복사됨!</div>
 
 <script>
-function switchTab(id){
+function switchTab(id, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  event.target.classList.add('active');
+  btn.classList.add('active');
 }
-function filterBy(role){
+function switchAdSub(id, btn){
+  document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('ad-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function filterBy(role, btn){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
+  btn.classList.add('active');
   document.querySelectorAll('.task-row').forEach(row=>{
     if(role==='all'){row.style.display='';return;}
     const a=row.querySelector('.task-assignee')?.textContent||'';
@@ -360,24 +432,21 @@ function buildUTM(){
   const camp=document.getElementById('utm-campaign').value.trim();
   const term=document.getElementById('utm-term').value.trim();
   const content=document.getElementById('utm-content').value.trim();
-  if(!base)return;
+  if(!base){document.getElementById('utm-result').textContent='';return;}
   const p=new URLSearchParams();
   if(src)p.set('utm_source',src);
   if(med)p.set('utm_medium',med);
   if(camp)p.set('utm_campaign',camp);
   if(term)p.set('utm_term',term);
   if(content)p.set('utm_content',content);
-  const url=base+(base.includes('?')?'&':'?')+p.toString();
-  document.getElementById('utm-result').textContent=url;
+  document.getElementById('utm-result').textContent=base+(base.includes('?')?'&':'?')+p.toString();
 }
 function copyUTM(){
   const url=document.getElementById('utm-result').textContent;
   if(!url)return;
   navigator.clipboard.writeText(url).then(()=>{
     const toast=document.getElementById('copy-toast');
-    toast.classList.add('show');
-    setTimeout(()=>toast.classList.remove('show'),2000);
-    // Add to history
+    toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2000);
     const hist=document.getElementById('utm-history');
     const first=hist.querySelector('p');
     if(first&&first.textContent.includes('아직'))hist.innerHTML='';
@@ -396,7 +465,6 @@ function resetUTM(){
   document.getElementById('utm-content').value='';
   document.getElementById('utm-result').textContent='';
 }
-// Init UTM on load
 buildUTM();
 </script>
 </body>
@@ -404,4 +472,4 @@ buildUTM();
 
 mkdirSync('docs', { recursive: true });
 writeFileSync('docs/index.html', html, 'utf-8');
-console.log(`✅ Built dashboard: ${epics.length} epics, ${allTasks.length} tasks, ${pct}% done`);
+console.log(`✅ Built dashboard: ${epics.length} epics, ${allTasks.length} tasks, ${pct}% done | Ad Manager: ${adsData.campaigns.length} campaigns`);

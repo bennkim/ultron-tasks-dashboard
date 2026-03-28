@@ -1,0 +1,98 @@
+{
+  "campaigns": [
+    {
+      "id": "CAM-001",
+      "name": "[WakaLab] 숏폼분석툴_AB테스트_2503",
+      "status": "live",
+      "startDate": "2026-03-27",
+      "endDate": null,
+      "budget": 900000,
+      "spent": 187500,
+      "conversions": 23,
+      "revenue": 1127000,
+      "roas": 6.01,
+      "objective": "CompleteRegistration",
+      "platform": "Meta",
+      "account": "Wakawaka 광고 계정",
+      "creatives": [
+        {
+          "id": "CR-A",
+          "name": "소재 A — 데이터 중심",
+          "status": "active",
+          "copy": "📊 \"경쟁사 숏폼, 왜 잘 되는지 데이터로 보여드립니다\"",
+          "cta": "무료 분석 시작하기",
+          "impressions": 12400,
+          "clicks": 389,
+          "conversions": 11,
+          "ctr": 3.14,
+          "cpc": 241
+        },
+        {
+          "id": "CR-B",
+          "name": "소재 B — 고통 중심",
+          "status": "active",
+          "copy": "😤 \"숏폼 매번 감으로 만들고 계신가요?\"",
+          "cta": "AI가 구조를 알려드립니다",
+          "impressions": 11800,
+          "clicks": 312,
+          "conversions": 7,
+          "ctr": 2.64,
+          "cpc": 301
+        },
+        {
+          "id": "CR-C",
+          "name": "소재 C — 비교 중심",
+          "status": "active",
+          "copy": "🔍 \"잘 되는 영상 vs 내 영상, 뭐가 다를까?\"",
+          "cta": "지금 비교해보기",
+          "impressions": 10200,
+          "clicks": 278,
+          "conversions": 3,
+          "ctr": 2.73,
+          "cpc": 337
+        },
+        {
+          "id": "CR-D",
+          "name": "소재 D — 결과 중심",
+          "status": "paused",
+          "copy": "🚀 \"분석만 했는데 조회수 3배 올랐습니다\"",
+          "cta": "무료 체험 시작",
+          "impressions": 8900,
+          "clicks": 198,
+          "conversions": 2,
+          "ctr": 2.22,
+          "cpc": 472
+        }
+      ]
+    },
+    {
+      "id": "CAM-002",
+      "name": "[WakaLab] 리타겟팅_방문자_2504",
+      "status": "draft",
+      "startDate": "2026-04-15",
+      "endDate": null,
+      "budget": 600000,
+      "spent": 0,
+      "conversions": 0,
+      "revenue": 0,
+      "roas": 0,
+      "objective": "Purchase",
+      "platform": "Meta",
+      "account": "Wakawaka 광고 계정",
+      "creatives": [
+        {
+          "id": "CR-RT1",
+          "name": "리타겟 A — 무료 체험 강조",
+          "status": "draft",
+          "copy": "🎉 \"아직 안 써보셨나요? 1개월 무료!\"",
+          "cta": "무료 체험 시작",
+          "impressions": 0,
+          "clicks": 0,
+          "conversions": 0,
+          "ctr": 0,
+          "cpc": 0
+        }
+      ]
+    }
+  ]
+}
