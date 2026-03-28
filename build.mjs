@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * TASKS.md + ads-data.json → Static Dashboard HTML (2-tab: Tasks / Ad Manager)
- * Zero dependencies — Node.js stdlib only
+ * TASKS.md + ads-data.json → Static Dashboard HTML
+ * 2 tabs: Tasks / Ad Manager (with xlsx export)
+ * Zero build dependencies — Node.js stdlib only
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 
-// ─── Parse TASKS.md ───
+// ═══════════════════════════════════════════
+// TASKS.MD PARSER
+// ═══════════════════════════════════════════
 const md = readFileSync('TASKS.md', 'utf-8');
 const lines = md.split('\n');
 const epics = [];
@@ -27,10 +30,6 @@ for (let i = 0; i < lines.length; i++) {
   if (storyMatch && currentEpic) {
     currentStory = { id: storyMatch[1], title: storyMatch[2].trim(), statusEmoji: storyMatch[3]||'', status: storyMatch[4]||'', meta: {}, tasks: [] };
     currentEpic.stories.push(currentStory); inTable = false;
-    for (let j = i+1; j < lines.length && lines[j].startsWith('- '); j++) {
-      const m = lines[j].match(/^- (.+?):\s*(.+)/);
-      if (m) currentStory.meta[m[1].replace(/\*/g,'')] = m[2];
-    }
     continue;
   }
   if (line.match(/^\|\s*Task\s*\|/) && currentStory) { inTable = true; i++; continue; }
@@ -50,7 +49,6 @@ function parseStatus(e) {
   if(e.includes('✅'))return'DONE';if(e.includes('🔄'))return'IN_PROGRESS';if(e.includes('🚨'))return'BLOCKED';
   if(e.includes('📋'))return'BACKLOG';if(e.includes('🔲'))return'TODO';if(e.includes('🔍'))return'REVIEW';return'UNKNOWN';
 }
-function gradeFromScore(s){if(s>=700)return'🔴';if(s>=400)return'🟠';if(s>=200)return'🟡';return'⚪';}
 function iceClass(s){if(s>=700)return'ice-critical';if(s>=400)return'ice-high';if(s>=200)return'ice-medium';return'ice-low';}
 function statusClass(s){return{DONE:'done',IN_PROGRESS:'progress',BLOCKED:'blocked',TODO:'todo',BACKLOG:'backlog',REVIEW:'review'}[s]||'unknown';}
 
@@ -67,99 +65,107 @@ function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td 
 function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">${s.id}</span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
 function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">${e.id}</span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
 
-// ─── Parse ads-data.json ───
+// ═══════════════════════════════════════════
+// ADS DATA
+// ═══════════════════════════════════════════
 const adsData = JSON.parse(readFileSync('ads-data.json', 'utf-8'));
+const adsDaily = adsData.daily || [];
+const adsMeta = adsData.meta || {};
+const adsCreatives = adsData.creatives || {};
+const creativeKeys = Object.keys(adsCreatives);
+const adsDates = [...new Set(adsDaily.map(d => d.date))].sort();
+const funnelStages = ['ViewContent','CompleteRegistration','InitiateCheckout','Purchase'];
+const funnelLabels = { ViewContent:'페이지 조회', CompleteRegistration:'회원가입', InitiateCheckout:'결제 시작', Purchase:'결제 완료' };
 
-function statusTag(s) {
-  const cls = { live:'tag-active', active:'tag-active', draft:'tag-draft', paused:'tag-paused', ended:'tag-ended' }[s] || 'tag-draft';
-  const label = { live:'🟢 라이브', active:'🟢 활성', draft:'📝 준비중', paused:'⏸️ 일시정지', ended:'⏹️ 종료' }[s] || s;
-  return `<span class="tag ${cls}">${label}</span>`;
+// Per-creative aggregates
+const creativeTotals = {};
+for (const key of creativeKeys) {
+  const rows = adsDaily.filter(d => d.creative === key);
+  const t = {
+    label: adsCreatives[key].label, key,
+    impressions: rows.reduce((s,r)=>s+r.impressions,0),
+    reach: rows.reduce((s,r)=>s+r.reach,0),
+    clicks: rows.reduce((s,r)=>s+r.clicks,0),
+    link_clicks: rows.reduce((s,r)=>s+r.link_clicks,0),
+    spend: rows.reduce((s,r)=>s+r.spend,0),
+    conversions: rows.reduce((s,r)=>s+r.conversions,0),
+    landing_page_views: rows.reduce((s,r)=>s+r.landing_page_views,0),
+  };
+  t.ctr = t.impressions>0?(t.clicks/t.impressions*100):0;
+  t.cpc = t.clicks>0?Math.round(t.spend/t.clicks):0;
+  t.cpm = t.impressions>0?Math.round(t.spend/t.impressions*1000):0;
+  t.cvr = t.clicks>0?(t.conversions/t.clicks*100):0;
+  t.cpa = t.conversions>0?Math.round(t.spend/t.conversions):0;
+  t.revenue = rows.reduce((s,r)=>s+(r.funnel?.Purchase?.revenue||0),0);
+  t.roas = t.spend>0?(t.revenue/t.spend):0;
+  creativeTotals[key] = t;
 }
-function fmt(n) { return n.toLocaleString('ko-KR'); }
-function fmtWon(n) { return '₩' + fmt(n); }
 
-function renderCreativeRow(c) {
-  return `<tr>
-    <td><strong>${c.name}</strong></td>
-    <td>${statusTag(c.status)}</td>
-    <td class="num">${fmt(c.impressions)}</td>
-    <td class="num">${fmt(c.clicks)}</td>
-    <td class="num">${c.ctr.toFixed(2)}%</td>
-    <td class="num">${c.cpc > 0 ? fmtWon(c.cpc) : '—'}</td>
-    <td class="num conv">${c.conversions}</td>
-  </tr>`;
-}
+// Daily aggregates
+const dailyTotals = adsDates.map(date => {
+  const rows = adsDaily.filter(d=>d.date===date);
+  const t = { date,
+    impressions:rows.reduce((s,r)=>s+r.impressions,0), reach:rows.reduce((s,r)=>s+r.reach,0),
+    clicks:rows.reduce((s,r)=>s+r.clicks,0), link_clicks:rows.reduce((s,r)=>s+r.link_clicks,0),
+    spend:rows.reduce((s,r)=>s+r.spend,0), conversions:rows.reduce((s,r)=>s+r.conversions,0),
+    landing_page_views:rows.reduce((s,r)=>s+r.landing_page_views,0),
+  };
+  t.ctr=t.impressions>0?(t.clicks/t.impressions*100):0;
+  t.cpc=t.clicks>0?Math.round(t.spend/t.clicks):0;
+  t.revenue=rows.reduce((s,r)=>s+(r.funnel?.Purchase?.revenue||0),0);
+  t.roas=t.spend>0?(t.revenue/t.spend):0;
+  return t;
+});
 
-function renderCampaign(cam) {
-  const roasColor = cam.roas >= 3 ? 'var(--green)' : cam.roas >= 1 ? 'var(--yellow)' : 'var(--red)';
-  const spentPct = cam.budget > 0 ? Math.round((cam.spent / cam.budget) * 100) : 0;
-  return `
-<div class="campaign-card">
-  <div class="campaign-header">
-    <h4>${statusTag(cam.status)} ${cam.name}</h4>
-    <span class="cam-id">${cam.id}</span>
-  </div>
-  <div class="cam-kpi-grid">
-    <div class="cam-kpi"><div class="cam-kpi-label">예산</div><div class="cam-kpi-value">${fmtWon(cam.budget)}</div></div>
-    <div class="cam-kpi"><div class="cam-kpi-label">소진액</div><div class="cam-kpi-value">${fmtWon(cam.spent)}<div class="cam-kpi-bar"><div class="cam-kpi-fill" style="width:${spentPct}%"></div></div></div></div>
-    <div class="cam-kpi"><div class="cam-kpi-label">전환</div><div class="cam-kpi-value conv">${cam.conversions}건</div></div>
-    <div class="cam-kpi"><div class="cam-kpi-label">매출</div><div class="cam-kpi-value">${fmtWon(cam.revenue)}</div></div>
-    <div class="cam-kpi"><div class="cam-kpi-label">ROAS</div><div class="cam-kpi-value" style="color:${roasColor}">${cam.roas > 0 ? cam.roas.toFixed(2) + 'x' : '—'}</div></div>
-    <div class="cam-kpi"><div class="cam-kpi-label">목표</div><div class="cam-kpi-value" style="font-size:.85rem">${cam.objective}</div></div>
-  </div>
-  <div class="creative-section">
-    <h5>🎨 광고 소재 비교 (${cam.creatives.length}종)</h5>
-    <table class="creative-table">
-      <thead><tr><th>소재</th><th>상태</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>전환</th></tr></thead>
-      <tbody>${cam.creatives.map(renderCreativeRow).join('')}</tbody>
-    </table>
-  </div>
-  <div class="cam-meta">
-    <span>📍 ${cam.platform} · ${cam.account}</span>
-    <span>📅 ${cam.startDate}${cam.endDate ? ' ~ ' + cam.endDate : ' ~'}</span>
-  </div>
-</div>`;
-}
+// Grand totals
+const gt = {
+  spend:adsDaily.reduce((s,r)=>s+r.spend,0), impressions:adsDaily.reduce((s,r)=>s+r.impressions,0),
+  clicks:adsDaily.reduce((s,r)=>s+r.clicks,0), conversions:adsDaily.reduce((s,r)=>s+r.conversions,0),
+  revenue:adsDaily.reduce((s,r)=>s+(r.funnel?.Purchase?.revenue||0),0),
+};
+gt.ctr=gt.impressions>0?(gt.clicks/gt.impressions*100):0;
+gt.roas=gt.spend>0?(gt.revenue/gt.spend):0;
+
+function fmt(n){return typeof n==='number'?n.toLocaleString('ko-KR'):String(n);}
+function fmtWon(n){return'₩'+fmt(n);}
+function rankBadge(r){if(!r)return'—';if(r.includes('ABOVE'))return'<span class="tag tag-active">상위</span>';if(r.includes('BELOW_AVERAGE_35'))return'<span class="tag tag-ended">하위35%</span>';if(r.includes('BELOW'))return'<span class="tag tag-paused">하위20%</span>';return'<span class="tag tag-draft">평균</span>';}
+const roasColor = v => v>=3?'var(--green)':v>=1?'var(--yellow)':'var(--red)';
 
 const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-const adsJson = JSON.stringify(adsData);
 
+// ═══════════════════════════════════════════
+// HTML TEMPLATE
+// ═══════════════════════════════════════════
 const html = `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ultron C-Suite Dashboard</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"><\/script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--green:#3fb950;--blue:#58a6ff;--red:#f85149;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:20px;max-width:1200px;margin:0 auto}
 h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .subtitle{color:var(--muted);font-size:.8rem;margin-bottom:20px}
-
-/* Tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
-.tab{background:none;border:none;color:var(--muted);padding:12px 24px;font-size:.9rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:600;letter-spacing:.3px}
+.tab{background:none;border:none;color:var(--muted);padding:12px 24px;font-size:.9rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:600}
 .tab:hover{color:var(--text);background:rgba(88,166,255,.05)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-content{display:none}.tab-content.active{display:block}
-
-/* Stats */
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:24px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
 .stat-value{font-size:1.8rem;font-weight:700}.stat-label{font-size:.75rem;color:var(--muted);margin-top:2px}
 .stat-done .stat-value{color:var(--green)}.stat-progress .stat-value{color:var(--blue)}
 .stat-blocked .stat-value{color:var(--red)}.stat-todo .stat-value{color:var(--yellow)}
-
 .progress-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px}
 .progress-section h2{font-size:.9rem;margin-bottom:8px}
 .big-bar{height:24px;background:var(--border);border-radius:12px;overflow:hidden}
 .big-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:12px}
 .big-pct{text-align:right;font-size:.8rem;color:var(--muted);margin-top:4px}
-
 .filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .filter-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .15s}
 .filter-btn:hover,.filter-btn.active{border-color:var(--blue);color:var(--blue)}
-
 .section-title{font-size:1rem;font-weight:600;margin:20px 0 12px}
 .epic{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .epic-header{display:flex;align-items:center;gap:8px;padding:14px 16px;cursor:pointer;user-select:none;flex-wrap:wrap}
@@ -173,7 +179,6 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .progress-bar{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;background:var(--green);border-radius:3px}
 .progress-text{font-size:.75rem;color:var(--muted);width:35px;text-align:right}
-
 .story{border-top:1px solid var(--border)}
 .story-header{display:flex;align-items:center;gap:8px;padding:10px 16px 10px 32px;cursor:pointer;user-select:none;flex-wrap:wrap}
 .story-header:hover{background:#1c2333}
@@ -184,9 +189,11 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .mini-bar{width:50px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
 .mini-fill{height:100%;background:var(--green);border-radius:2px}
 .story-body{padding:0 16px 12px 32px}
-.task-table{width:100%;border-collapse:collapse;font-size:.8rem}
-.task-table th{text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase}
-.task-table td{padding:6px 8px;border-bottom:1px solid #21262d}
+.task-table,.data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.task-table th,.data-table th{text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase}
+.task-table td,.data-table td{padding:6px 8px;border-bottom:1px solid #21262d}
+.data-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.data-table .conv{color:var(--green);font-weight:700}
 .task-id{font-weight:600;color:var(--blue);white-space:nowrap}
 .task-desc{max-width:400px}
 .badge{font-size:.7rem;padding:1px 8px;border-radius:10px;white-space:nowrap}
@@ -204,43 +211,23 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .rank-id{color:var(--blue);font-weight:600}
 .rank-score{margin-left:auto}
 .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-
-/* ─── Ad Manager ─── */
-.ad-sub-tabs{display:flex;gap:4px;margin-bottom:20px}
+.ad-sub-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
 .ad-sub-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;font-size:.8rem;cursor:pointer;font-weight:500;transition:all .15s}
 .ad-sub-tab:hover{color:var(--text);border-color:var(--text)}
 .ad-sub-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 .ad-sub-content{display:none}.ad-sub-content.active{display:block}
-
-/* Campaign Cards */
-.campaign-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-.campaign-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.campaign-header h4{font-size:.95rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.cam-id{font-size:.7rem;color:var(--muted);font-family:monospace}
-.cam-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
-.cam-kpi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
-.cam-kpi-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.cam-kpi-value{font-size:1.1rem;font-weight:700}
-.cam-kpi-value.conv{color:var(--green)}
-.cam-kpi-bar{height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden}
-.cam-kpi-fill{height:100%;background:var(--blue);border-radius:2px}
-.cam-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:.75rem;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-
-.creative-section{margin-top:12px}
-.creative-section h5{font-size:.85rem;margin-bottom:10px;font-weight:600}
-.creative-table{width:100%;border-collapse:collapse;font-size:.8rem}
-.creative-table th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--border);font-size:.7rem;text-transform:uppercase}
-.creative-table td{padding:8px;border-bottom:1px solid #21262d}
-.creative-table .num{text-align:right;font-variant-numeric:tabular-nums}
-.creative-table .conv{color:var(--green);font-weight:700}
-
 .tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:6px;font-weight:500}
 .tag-active{background:rgba(63,185,80,.15);color:var(--green)}
 .tag-draft{background:rgba(139,148,158,.15);color:var(--muted)}
 .tag-paused{background:rgba(210,153,34,.15);color:var(--yellow)}
 .tag-ended{background:rgba(248,81,73,.15);color:var(--red)}
-
-/* UTM Builder */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.kpi-value{font-size:1.6rem;font-weight:700}.kpi-label{font-size:.7rem;color:var(--muted);margin-top:2px;text-transform:uppercase}
+.export-bar{display:flex;gap:8px;margin-bottom:20px;align-items:center}
+.export-btn{padding:10px 24px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:6px}
+.export-btn-primary{background:var(--green);color:#fff}.export-btn-primary:hover{opacity:.85}
+.export-btn-secondary{background:var(--border);color:var(--text)}.export-btn-secondary:hover{background:#3d444d}
 .utm-form{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
 .utm-form h3{font-size:.95rem;margin-bottom:16px}
 .utm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -255,23 +242,23 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .utm-btn-secondary{background:var(--border);color:var(--text)}.utm-btn-secondary:hover{background:#3d444d}
 .copy-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 20px;border-radius:8px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
 .copy-toast.show{opacity:1}
-
-/* Ad Manager Summary */
-.ad-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
-
-@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.cam-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.funnel-bar{display:flex;align-items:center;gap:8px;margin:4px 0}
+.funnel-fill{height:22px;border-radius:4px;min-width:2px;transition:width .3s}
+.funnel-label{font-size:.75rem;width:80px;text-align:right;color:var(--muted)}
+.funnel-value{font-size:.75rem;font-weight:600}
+@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <h1>📊 Ultron C-Suite Dashboard</h1>
-<p class="subtitle">마지막 빌드: ${now}</p>
+<p class="subtitle">마지막 빌드: ${now} · 캠페인: ${adsMeta.campaignName || '—'} · 광고계정: ${adsMeta.adAccount || '—'}</p>
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('tasks',this)">📋 Tasks</button>
   <button class="tab" onclick="switchTab('admanager',this)">📢 Ad Manager</button>
 </div>
 
-<!-- ══════════ TAB: Tasks ══════════ -->
+<!-- ══════ TASKS TAB ══════ -->
 <div id="tab-tasks" class="tab-content active">
 <div class="summary">
   <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">전체</div></div>
@@ -283,7 +270,7 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 <div class="progress-section"><h2>전체 진행률</h2><div class="big-bar"><div class="big-fill" style="width:${pct}%"></div></div><div class="big-pct">${done}/${total} (${pct}%)</div></div>
 <div class="panels">
   <div class="panel"><h3>🚨 블로커 (${blockers.length}건)</h3>${blockers.length===0?'<p style="color:var(--muted);font-size:.85rem">없음 🎉</p>':blockers.map(b=>`<div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">${b.id}</span><span>${b.desc}</span><span style="color:var(--muted);margin-left:auto">${b.assignee}</span></div>`).join('')}</div>
-  <div class="panel"><h3>🏆 ICE 랭킹 (미완료 Top 10)</h3>${iceRanking.map((t,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-id">${t.id}</span><span>${t.desc.substring(0,30)}${t.desc.length>30?'…':''}</span><span class="rank-score"><span class="ice ${iceClass(t.iceScore)}">${t.iceScore}</span></span></div>`).join('')}</div>
+  <div class="panel"><h3>🏆 ICE 랭킹 Top 10</h3>${iceRanking.map((t,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-id">${t.id}</span><span>${t.desc.substring(0,30)}${t.desc.length>30?'…':''}</span><span class="rank-score"><span class="ice ${iceClass(t.iceScore)}">${t.iceScore}</span></span></div>`).join('')}</div>
 </div>
 <div class="filters">
   <button class="filter-btn active" onclick="filterBy('all',this)">전체</button>
@@ -292,52 +279,115 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
   <button class="filter-btn" onclick="filterBy('CTO',this)">💻 CTO</button>
   <button class="filter-btn" onclick="filterBy('의장',this)">👑 의장</button>
 </div>
-<div class="section-title">에픽</div>
 ${epics.map(renderEpic).join('')}
 </div>
 
-<!-- ══════════ TAB: Ad Manager ══════════ -->
+<!-- ══════ AD MANAGER TAB ══════ -->
 <div id="tab-admanager" class="tab-content">
 
+<div class="export-bar">
+  <button class="export-btn export-btn-primary" onclick="exportXLSX()">📥 엑셀 다운로드 (.xlsx)</button>
+  <span style="color:var(--muted);font-size:.8rem">4시트: Daily Overview / Creative Breakdown / Funnel Analysis / Raw Data</span>
+</div>
+
 <div class="ad-sub-tabs">
-  <button class="ad-sub-tab active" onclick="switchAdSub('campaigns',this)">📊 캠페인 관리</button>
+  <button class="ad-sub-tab active" onclick="switchAdSub('overview',this)">📊 일별 개요</button>
   <button class="ad-sub-tab" onclick="switchAdSub('creatives',this)">🎨 소재 비교</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('funnel',this)">🔻 퍼널 분석</button>
   <button class="ad-sub-tab" onclick="switchAdSub('utm',this)">🔗 UTM 빌더</button>
 </div>
 
-<!-- Sub: Campaigns -->
-<div id="ad-campaigns" class="ad-sub-content active">
-<div class="ad-summary">
-  <div class="stat"><div class="stat-value">${adsData.campaigns.length}</div><div class="stat-label">캠페인</div></div>
-  <div class="stat stat-done"><div class="stat-value">${adsData.campaigns.filter(c=>c.status==='live').length}</div><div class="stat-label">🟢 라이브</div></div>
-  <div class="stat"><div class="stat-value">${fmtWon(adsData.campaigns.reduce((s,c)=>s+c.spent,0))}</div><div class="stat-label">총 소진액</div></div>
-  <div class="stat"><div class="stat-value">${fmtWon(adsData.campaigns.reduce((s,c)=>s+c.revenue,0))}</div><div class="stat-label">총 매출</div></div>
-  <div class="stat stat-done"><div class="stat-value">${adsData.campaigns.reduce((s,c)=>s+c.conversions,0)}건</div><div class="stat-label">총 전환</div></div>
+<!-- Sub: Daily Overview -->
+<div id="ad-overview" class="ad-sub-content active">
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-value">${fmtWon(gt.spend)}</div><div class="kpi-label">총 소진액</div></div>
+  <div class="kpi"><div class="kpi-value">${fmt(gt.impressions)}</div><div class="kpi-label">총 노출</div></div>
+  <div class="kpi"><div class="kpi-value">${fmt(gt.clicks)}</div><div class="kpi-label">총 클릭</div></div>
+  <div class="kpi"><div class="kpi-value">${gt.ctr.toFixed(2)}%</div><div class="kpi-label">평균 CTR</div></div>
+  <div class="kpi"><div class="kpi-value" style="color:var(--green)">${gt.conversions}건</div><div class="kpi-label">총 전환</div></div>
+  <div class="kpi"><div class="kpi-value">${fmtWon(gt.revenue)}</div><div class="kpi-label">총 매출</div></div>
+  <div class="kpi"><div class="kpi-value" style="color:${roasColor(gt.roas)}">${gt.roas.toFixed(2)}x</div><div class="kpi-label">ROAS</div></div>
 </div>
-${adsData.campaigns.map(renderCampaign).join('')}
+<div class="panel"><h3>📅 일별 캠페인 합산</h3>
+<div style="overflow-x:auto">
+<table class="data-table">
+<thead><tr><th>날짜</th><th>노출</th><th>도달</th><th>클릭</th><th>링크클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>LPV</th><th>전환</th><th>매출</th><th>ROAS</th></tr></thead>
+<tbody>
+${dailyTotals.map(d=>`<tr><td>${d.date}</td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.reach)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${fmt(d.link_clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num">${fmt(d.landing_page_views)}</td><td class="num conv">${d.conversions}</td><td class="num">${fmtWon(d.revenue)}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td></tr>`).join('')}
+</tbody>
+</table>
+</div></div>
 </div>
 
-<!-- Sub: Creative Comparison -->
+<!-- Sub: Creative Breakdown -->
 <div id="ad-creatives" class="ad-sub-content">
-<div class="section-title">🎨 전체 소재 성과 비교</div>
-<div class="panel">
-<table class="creative-table">
-  <thead><tr><th>캠페인</th><th>소재</th><th>상태</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>전환</th></tr></thead>
-  <tbody>
-${adsData.campaigns.flatMap(cam => cam.creatives.map(c => `
-    <tr>
-      <td style="font-size:.75rem;color:var(--muted)">${cam.id}</td>
-      <td><strong>${c.name}</strong><br><span style="font-size:.7rem;color:var(--muted)">${c.copy}</span></td>
-      <td>${statusTag(c.status)}</td>
-      <td class="num">${fmt(c.impressions)}</td>
-      <td class="num">${fmt(c.clicks)}</td>
-      <td class="num">${c.ctr.toFixed(2)}%</td>
-      <td class="num">${c.cpc > 0 ? fmtWon(c.cpc) : '—'}</td>
-      <td class="num conv">${c.conversions}</td>
-    </tr>`)).join('')}
-  </tbody>
+<div class="section-title">🎨 소재별 누적 성과 (${adsMeta.campaignName || ''})</div>
+<div class="panel"><div style="overflow-x:auto">
+<table class="data-table">
+<thead><tr><th>소재</th><th>utm_content</th><th>노출</th><th>도달</th><th>클릭</th><th>CTR</th><th>CPC</th><th>CPM</th><th>소진액</th><th>전환</th><th>CVR</th><th>CPA</th><th>매출</th><th>ROAS</th></tr></thead>
+<tbody>
+${creativeKeys.map(k=>{const t=creativeTotals[k];return`<tr><td><strong>${t.label}</strong></td><td style="font-size:.75rem;color:var(--muted)">${k}</td><td class="num">${fmt(t.impressions)}</td><td class="num">${fmt(t.reach)}</td><td class="num">${fmt(t.clicks)}</td><td class="num">${t.ctr.toFixed(2)}%</td><td class="num">${fmtWon(t.cpc)}</td><td class="num">${fmtWon(t.cpm)}</td><td class="num">${fmtWon(t.spend)}</td><td class="num conv">${t.conversions}</td><td class="num">${t.cvr.toFixed(2)}%</td><td class="num">${t.cpa>0?fmtWon(t.cpa):'—'}</td><td class="num">${fmtWon(t.revenue)}</td><td class="num" style="color:${roasColor(t.roas)}">${t.roas.toFixed(2)}x</td></tr>`;}).join('')}
+</tbody>
 </table>
+</div></div>
+
+<div class="section-title">📅 소재별 일별 비교</div>
+<div class="panel"><div style="overflow-x:auto">
+<table class="data-table">
+<thead><tr><th>날짜</th><th>소재</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>전환</th><th>ROAS</th><th>품질</th><th>참여도</th><th>전환율</th></tr></thead>
+<tbody>
+${adsDaily.map(d=>`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?.label||d.creative}</strong></td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num conv">${d.conversions}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td><td>${rankBadge(d.quality_ranking)}</td><td>${rankBadge(d.engagement_rate_ranking)}</td><td>${rankBadge(d.conversion_rate_ranking)}</td></tr>`).join('')}
+</tbody>
+</table>
+</div></div>
 </div>
+
+<!-- Sub: Funnel Analysis -->
+<div id="ad-funnel" class="ad-sub-content">
+<div class="section-title">🔻 퍼널 분석 — 전체 캠페인 합산</div>
+${(() => {
+  // Build funnel totals
+  const ft = {};
+  for (const stage of funnelStages) {
+    ft[stage] = { count:0, cost:0, revenue:0 };
+    for (const d of adsDaily) {
+      if(d.funnel&&d.funnel[stage]){
+        ft[stage].count+=d.funnel[stage].count||0;
+        ft[stage].cost+=d.funnel[stage].cost||0;
+        ft[stage].revenue+=d.funnel[stage].revenue||0;
+      }
+    }
+  }
+  const maxCount = Math.max(...funnelStages.map(s=>ft[s].count),1);
+  const colors = ['var(--blue)','var(--purple)','var(--orange)','var(--green)'];
+  let funnelHTML = '<div class="panel">';
+  funnelStages.forEach((stage,i) => {
+    const pct = Math.round(ft[stage].count/maxCount*100);
+    const cvr = i>0&&ft[funnelStages[i-1]].count>0 ? (ft[stage].count/ft[funnelStages[i-1]].count*100).toFixed(1)+'%' : '—';
+    funnelHTML += `<div class="funnel-bar"><span class="funnel-label">${funnelLabels[stage]}</span><div class="funnel-fill" style="width:${pct}%;background:${colors[i]}">&nbsp;</div><span class="funnel-value">${ft[stage].count}건 (CPA: ${ft[stage].cost>0&&ft[stage].count>0?fmtWon(Math.round(ft[stage].cost/ft[stage].count)):'—'}) ${i>0?'전환율: '+cvr:''}</span></div>`;
+  });
+  funnelHTML += '</div>';
+
+  // Per-creative funnel table
+  funnelHTML += '<div class="section-title">소재별 퍼널 비교</div><div class="panel"><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>소재</th>';
+  for (const stage of funnelStages) funnelHTML += `<th>${funnelLabels[stage]} 건수</th><th>비용</th>`;
+  funnelHTML += '<th>Purchase 매출</th><th>ROAS</th></tr></thead><tbody>';
+  for (const k of creativeKeys) {
+    const rows = adsDaily.filter(d=>d.creative===k);
+    const cf = {};
+    for (const stage of funnelStages) {
+      cf[stage]={count:0,cost:0,revenue:0};
+      for(const r of rows){if(r.funnel&&r.funnel[stage]){cf[stage].count+=r.funnel[stage].count||0;cf[stage].cost+=r.funnel[stage].cost||0;cf[stage].revenue+=r.funnel[stage].revenue||0;}}
+    }
+    const rev = cf.Purchase.revenue;
+    const spend = creativeTotals[k].spend;
+    funnelHTML += `<tr><td><strong>${adsCreatives[k].label}</strong></td>`;
+    for (const stage of funnelStages) funnelHTML += `<td class="num">${cf[stage].count}</td><td class="num">${fmtWon(cf[stage].cost)}</td>`;
+    funnelHTML += `<td class="num conv">${fmtWon(rev)}</td><td class="num" style="color:${roasColor(spend>0?rev/spend:0)}">${spend>0?(rev/spend).toFixed(2)+'x':'—'}</td></tr>`;
+  }
+  funnelHTML += '</tbody></table></div></div>';
+  return funnelHTML;
+})()}
 </div>
 
 <!-- Sub: UTM Builder -->
@@ -345,45 +395,12 @@ ${adsData.campaigns.flatMap(cam => cam.creatives.map(c => `
 <div class="utm-form">
   <h3>🔗 UTM 파라미터 빌더</h3>
   <div class="utm-grid">
-    <div class="utm-field full">
-      <label>Base URL *</label>
-      <input type="text" id="utm-url" value="https://wakalab.io" placeholder="https://wakalab.io" oninput="buildUTM()">
-    </div>
-    <div class="utm-field">
-      <label>utm_source *</label>
-      <select id="utm-source" onchange="buildUTM()">
-        <option value="meta">meta</option>
-        <option value="google">google</option>
-        <option value="naver">naver</option>
-        <option value="tiktok">tiktok</option>
-        <option value="instagram">instagram</option>
-        <option value="youtube">youtube</option>
-        <option value="direct">direct</option>
-      </select>
-    </div>
-    <div class="utm-field">
-      <label>utm_medium *</label>
-      <select id="utm-medium" onchange="buildUTM()">
-        <option value="paid_social">paid_social</option>
-        <option value="cpc">cpc</option>
-        <option value="display">display</option>
-        <option value="email">email</option>
-        <option value="organic">organic</option>
-        <option value="referral">referral</option>
-      </select>
-    </div>
-    <div class="utm-field">
-      <label>utm_campaign *</label>
-      <input type="text" id="utm-campaign" value="" placeholder="wakalab_ab_test_2503" oninput="buildUTM()">
-    </div>
-    <div class="utm-field">
-      <label>utm_content</label>
-      <input type="text" id="utm-content" placeholder="creative_a" oninput="buildUTM()">
-    </div>
-    <div class="utm-field">
-      <label>utm_term</label>
-      <input type="text" id="utm-term" placeholder="keyword" oninput="buildUTM()">
-    </div>
+    <div class="utm-field full"><label>Base URL *</label><input type="text" id="utm-url" value="https://wakalab.io" oninput="buildUTM()"></div>
+    <div class="utm-field"><label>utm_source *</label><select id="utm-source" onchange="buildUTM()"><option value="meta">meta</option><option value="google">google</option><option value="naver">naver</option><option value="tiktok">tiktok</option><option value="instagram">instagram</option><option value="youtube">youtube</option></select></div>
+    <div class="utm-field"><label>utm_medium *</label><select id="utm-medium" onchange="buildUTM()"><option value="paid_social">paid_social</option><option value="cpc">cpc</option><option value="display">display</option><option value="email">email</option><option value="organic">organic</option></select></div>
+    <div class="utm-field"><label>utm_campaign *</label><input type="text" id="utm-campaign" value="${adsMeta.campaignName||''}" oninput="buildUTM()"></div>
+    <div class="utm-field"><label>utm_content</label><select id="utm-content" onchange="buildUTM()"><option value="">선택...</option>${creativeKeys.map(k=>`<option value="${k}">${k}</option>`).join('')}</select></div>
+    <div class="utm-field"><label>utm_term</label><input type="text" id="utm-term" placeholder="keyword" oninput="buildUTM()"></div>
   </div>
   <div class="utm-result" id="utm-result"></div>
   <div class="utm-actions">
@@ -391,85 +408,112 @@ ${adsData.campaigns.flatMap(cam => cam.creatives.map(c => `
     <button class="utm-btn utm-btn-secondary" onclick="resetUTM()">🔄 초기화</button>
   </div>
 </div>
-<div class="panel">
-  <h3>📌 최근 생성한 UTM 링크</h3>
-  <div id="utm-history" style="font-size:.8rem;color:var(--muted)">
-    <p>아직 생성된 링크가 없습니다.</p>
-  </div>
-</div>
+<div class="panel"><h3>📌 최근 생성한 UTM 링크</h3><div id="utm-history" style="font-size:.8rem;color:var(--muted)"><p>아직 생성된 링크가 없습니다.</p></div></div>
 </div>
 
-</div>
+</div><!-- /tab-admanager -->
 
-<div class="copy-toast" id="copy-toast">✅ 클립보드에 복사됨!</div>
+<div class="copy-toast" id="copy-toast">✅ 복사됨!</div>
 
 <script>
-function switchTab(id, btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-}
-function switchAdSub(id, btn){
-  document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('ad-'+id).classList.add('active');
-  btn.classList.add('active');
-}
-function filterBy(role, btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.task-row').forEach(row=>{
-    if(role==='all'){row.style.display='';return;}
-    const a=row.querySelector('.task-assignee')?.textContent||'';
-    row.style.display=a.includes(role)?'':'none';
-  });
-}
-function buildUTM(){
-  const base=document.getElementById('utm-url').value.trim();
-  const src=document.getElementById('utm-source').value;
-  const med=document.getElementById('utm-medium').value;
-  const camp=document.getElementById('utm-campaign').value.trim();
-  const term=document.getElementById('utm-term').value.trim();
-  const content=document.getElementById('utm-content').value.trim();
-  if(!base){document.getElementById('utm-result').textContent='';return;}
-  const p=new URLSearchParams();
-  if(src)p.set('utm_source',src);
-  if(med)p.set('utm_medium',med);
-  if(camp)p.set('utm_campaign',camp);
-  if(term)p.set('utm_term',term);
-  if(content)p.set('utm_content',content);
-  document.getElementById('utm-result').textContent=base+(base.includes('?')?'&':'?')+p.toString();
-}
-function copyUTM(){
-  const url=document.getElementById('utm-result').textContent;
-  if(!url)return;
-  navigator.clipboard.writeText(url).then(()=>{
-    const toast=document.getElementById('copy-toast');
-    toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2000);
-    const hist=document.getElementById('utm-history');
-    const first=hist.querySelector('p');
-    if(first&&first.textContent.includes('아직'))hist.innerHTML='';
-    const item=document.createElement('div');
-    item.style.cssText='padding:6px 0;border-bottom:1px solid var(--border);word-break:break-all';
-    item.innerHTML='<span style="color:var(--blue)">'+url+'</span> <span style="color:var(--muted);font-size:.7rem">'+new Date().toLocaleTimeString('ko-KR')+'</span>';
-    hist.prepend(item);
-  });
-}
-function resetUTM(){
-  document.getElementById('utm-url').value='https://wakalab.io';
-  document.getElementById('utm-source').value='meta';
-  document.getElementById('utm-medium').value='paid_social';
-  document.getElementById('utm-campaign').value='';
-  document.getElementById('utm-term').value='';
-  document.getElementById('utm-content').value='';
-  document.getElementById('utm-result').textContent='';
-}
+// ── Embedded ads data for xlsx export ──
+const ADS_RAW = ${JSON.stringify(adsDaily)};
+const ADS_META = ${JSON.stringify(adsMeta)};
+const ADS_CREATIVES = ${JSON.stringify(adsCreatives)};
+const CREATIVE_KEYS = ${JSON.stringify(creativeKeys)};
+const FUNNEL_STAGES = ['ViewContent','CompleteRegistration','InitiateCheckout','Purchase'];
+const FUNNEL_KO = {ViewContent:'페이지 조회',CompleteRegistration:'회원가입',InitiateCheckout:'결제 시작',Purchase:'결제 완료'};
+
+// ── Tab switching ──
+function switchTab(id,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active');}
+function switchAdSub(id,btn){document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));document.getElementById('ad-'+id).classList.add('active');btn.classList.add('active');}
+function filterBy(role,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.task-row').forEach(row=>{if(role==='all'){row.style.display='';return;}const a=row.querySelector('.task-assignee')?.textContent||'';row.style.display=a.includes(role)?'':'none';});}
+
+// ── UTM Builder ──
+function buildUTM(){const base=document.getElementById('utm-url').value.trim();if(!base){document.getElementById('utm-result').textContent='';return;}const p=new URLSearchParams();['source','medium','campaign','content','term'].forEach(k=>{const v=document.getElementById('utm-'+k).value.trim();if(v)p.set('utm_'+k,v);});document.getElementById('utm-result').textContent=base+(base.includes('?')?'&':'?')+p.toString();}
+function copyUTM(){const url=document.getElementById('utm-result').textContent;if(!url)return;navigator.clipboard.writeText(url).then(()=>{showToast();const hist=document.getElementById('utm-history');const f=hist.querySelector('p');if(f)hist.innerHTML='';const d=document.createElement('div');d.style.cssText='padding:6px 0;border-bottom:1px solid var(--border);word-break:break-all';d.innerHTML='<span style="color:var(--blue)">'+url+'</span> <span style="color:var(--muted);font-size:.7rem">'+new Date().toLocaleTimeString('ko-KR')+'</span>';hist.prepend(d);});}
+function resetUTM(){document.getElementById('utm-url').value='https://wakalab.io';document.getElementById('utm-source').value='meta';document.getElementById('utm-medium').value='paid_social';document.getElementById('utm-campaign').value=ADS_META.campaignName||'';document.getElementById('utm-content').value='';document.getElementById('utm-term').value='';buildUTM();}
+function showToast(){const t=document.getElementById('copy-toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 buildUTM();
-</script>
+
+// ═══ XLSX EXPORT (SheetJS) ═══
+function exportXLSX(){
+  if(typeof XLSX==='undefined'){alert('SheetJS 로딩 실패. 새로고침 후 다시 시도해주세요.');return;}
+  const wb=XLSX.utils.book_new();
+  const campaign=ADS_META.campaignName||'campaign';
+
+  // Sheet1: Daily Overview
+  const dates=[...new Set(ADS_RAW.map(d=>d.date))].sort();
+  const s1=dates.map(date=>{
+    const rows=ADS_RAW.filter(d=>d.date===date);
+    const o={날짜:date};
+    o.노출=rows.reduce((s,r)=>s+r.impressions,0);
+    o.도달=rows.reduce((s,r)=>s+r.reach,0);
+    o.빈도=+(rows.reduce((s,r)=>s+r.frequency,0)/rows.length).toFixed(2);
+    o.클릭=rows.reduce((s,r)=>s+r.clicks,0);
+    o.링크클릭=rows.reduce((s,r)=>s+r.link_clicks,0);
+    o.CTR=+(o.노출>0?(o.클릭/o.노출*100):0).toFixed(2);
+    o.CPC=o.클릭>0?Math.round(rows.reduce((s,r)=>s+r.spend,0)/o.클릭):0;
+    o.CPM=o.노출>0?Math.round(rows.reduce((s,r)=>s+r.spend,0)/o.노출*1000):0;
+    o.소진액=rows.reduce((s,r)=>s+r.spend,0);
+    o.LPV=rows.reduce((s,r)=>s+r.landing_page_views,0);
+    o.전환=rows.reduce((s,r)=>s+r.conversions,0);
+    o.CVR=+(o.클릭>0?(o.전환/o.클릭*100):0).toFixed(2);
+    o.CPA=o.전환>0?Math.round(o.소진액/o.전환):0;
+    const rev=rows.reduce((s,r)=>s+(r.funnel?.Purchase?.revenue||0),0);
+    o.매출=rev;
+    o.ROAS=+(o.소진액>0?(rev/o.소진액):0).toFixed(2);
+    return o;
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s1),'Daily Overview');
+
+  // Sheet2: Creative Breakdown
+  const s2=ADS_RAW.map(d=>({
+    날짜:d.date,캠페인:campaign,소재:ADS_CREATIVES[d.creative]?.label||d.creative,utm_content:d.creative,
+    노출:d.impressions,도달:d.reach,빈도:d.frequency,클릭:d.clicks,링크클릭:d.link_clicks,
+    CTR:d.ctr,CPC:d.cpc,CPM:d.cpm,소진액:d.spend,LPV:d.landing_page_views,
+    전환:d.conversions,CVR:d.cvr,CPA:d.cpa,ROAS:d.roas,
+    품질순위:d.quality_ranking,참여도순위:d.engagement_rate_ranking,전환율순위:d.conversion_rate_ranking
+  }));
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s2),'Creative Breakdown');
+
+  // Sheet3: Funnel Analysis
+  const s3=[];
+  for(const k of CREATIVE_KEYS){
+    const rows=ADS_RAW.filter(d=>d.creative===k);
+    for(const stage of FUNNEL_STAGES){
+      const f={소재:ADS_CREATIVES[k]?.label||k,utm_content:k,퍼널단계:FUNNEL_KO[stage],이벤트:stage};
+      f.건수=rows.reduce((s,r)=>s+(r.funnel?.[stage]?.count||0),0);
+      f.비용=rows.reduce((s,r)=>s+(r.funnel?.[stage]?.cost||0),0);
+      if(stage==='Purchase'){f.매출=rows.reduce((s,r)=>s+(r.funnel?.[stage]?.revenue||0),0);f.ROAS=f.비용>0?+(f.매출/f.비용).toFixed(2):0;}
+      s3.push(f);
+    }
+  }
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s3),'Funnel Analysis');
+
+  // Sheet4: Raw Data
+  const s4=ADS_RAW.map(d=>{
+    const o={date:d.date,campaign:campaign,creative:d.creative,utm_content:d.creative,
+      impressions:d.impressions,reach:d.reach,frequency:d.frequency,clicks:d.clicks,link_clicks:d.link_clicks,
+      ctr:d.ctr,cpc:d.cpc,cpm:d.cpm,spend:d.spend,landing_page_views:d.landing_page_views,
+      conversions:d.conversions,cvr:d.cvr,cpa:d.cpa,roas:d.roas,
+      quality_ranking:d.quality_ranking,engagement_rate_ranking:d.engagement_rate_ranking,conversion_rate_ranking:d.conversion_rate_ranking};
+    for(const stage of FUNNEL_STAGES){
+      o[stage+'_count']=d.funnel?.[stage]?.count||0;
+      o[stage+'_cost']=d.funnel?.[stage]?.cost||0;
+      if(stage==='Purchase')o[stage+'_revenue']=d.funnel?.[stage]?.revenue||0;
+    }
+    return o;
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(s4),'Raw Data');
+
+  XLSX.writeFile(wb,campaign+'_report.xlsx');
+  showToast();
+}
+<\/script>
 </body>
 </html>`;
 
 mkdirSync('docs', { recursive: true });
 writeFileSync('docs/index.html', html, 'utf-8');
-console.log(`✅ Built dashboard: ${epics.length} epics, ${allTasks.length} tasks, ${pct}% done | Ad Manager: ${adsData.campaigns.length} campaigns`);
+console.log(`✅ Built: ${epics.length} epics, ${allTasks.length} tasks (${pct}%) | Ads: ${adsDaily.length} daily rows, ${creativeKeys.length} creatives`);

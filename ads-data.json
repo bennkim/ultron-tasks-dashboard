@@ -1,98 +1,136 @@
 {
-  "campaigns": [
+  "meta": {
+    "adAccount": "act_1591471198924948",
+    "campaignName": "WakaLab_ABCD_테스트_260325",
+    "pixelId": "945558464891805",
+    "exportVersion": "1.0"
+  },
+  "creatives": {
+    "ad-a-data": { "label": "소재 A — 데이터 중심", "copy": "경쟁사 숏폼, 왜 잘 되는지 데이터로 보여드립니다", "cta": "무료 분석 시작하기" },
+    "ad-b-competitor": { "label": "소재 B — 고통 중심", "copy": "숏폼 매번 감으로 만들고 계신가요?", "cta": "AI가 구조를 알려드립니다" },
+    "ad-c-workflow": { "label": "소재 C — 비교 중심", "copy": "잘 되는 영상 vs 내 영상, 뭐가 다를까?", "cta": "지금 비교해보기" },
+    "ad-d-proof": { "label": "소재 D — 결과 중심", "copy": "분석만 했는데 조회수 3배 올랐습니다", "cta": "무료 체험 시작" }
+  },
+  "daily": [
     {
-      "id": "CAM-001",
-      "name": "[WakaLab] 숏폼분석툴_AB테스트_2503",
-      "status": "live",
-      "startDate": "2026-03-27",
-      "endDate": null,
-      "budget": 900000,
-      "spent": 187500,
-      "conversions": 23,
-      "revenue": 1127000,
-      "roas": 6.01,
-      "objective": "CompleteRegistration",
-      "platform": "Meta",
-      "account": "Wakawaka 광고 계정",
-      "creatives": [
-        {
-          "id": "CR-A",
-          "name": "소재 A — 데이터 중심",
-          "status": "active",
-          "copy": "📊 \"경쟁사 숏폼, 왜 잘 되는지 데이터로 보여드립니다\"",
-          "cta": "무료 분석 시작하기",
-          "impressions": 12400,
-          "clicks": 389,
-          "conversions": 11,
-          "ctr": 3.14,
-          "cpc": 241
-        },
-        {
-          "id": "CR-B",
-          "name": "소재 B — 고통 중심",
-          "status": "active",
-          "copy": "😤 \"숏폼 매번 감으로 만들고 계신가요?\"",
-          "cta": "AI가 구조를 알려드립니다",
-          "impressions": 11800,
-          "clicks": 312,
-          "conversions": 7,
-          "ctr": 2.64,
-          "cpc": 301
-        },
-        {
-          "id": "CR-C",
-          "name": "소재 C — 비교 중심",
-          "status": "active",
-          "copy": "🔍 \"잘 되는 영상 vs 내 영상, 뭐가 다를까?\"",
-          "cta": "지금 비교해보기",
-          "impressions": 10200,
-          "clicks": 278,
-          "conversions": 3,
-          "ctr": 2.73,
-          "cpc": 337
-        },
-        {
-          "id": "CR-D",
-          "name": "소재 D — 결과 중심",
-          "status": "paused",
-          "copy": "🚀 \"분석만 했는데 조회수 3배 올랐습니다\"",
-          "cta": "무료 체험 시작",
-          "impressions": 8900,
-          "clicks": 198,
-          "conversions": 2,
-          "ctr": 2.22,
-          "cpc": 472
-        }
-      ]
+      "date": "2026-03-27",
+      "creative": "ad-a-data",
+      "impressions": 3200, "reach": 2800, "frequency": 1.14,
+      "clicks": 98, "link_clicks": 82, "ctr": 3.06, "cpc": 230, "cpm": 7031,
+      "spend": 22500, "landing_page_views": 71,
+      "conversions": 3, "cvr": 3.66, "cpa": 7500, "roas": 6.53,
+      "quality_ranking": "ABOVE_AVERAGE", "engagement_rate_ranking": "ABOVE_AVERAGE", "conversion_rate_ranking": "AVERAGE",
+      "funnel": {
+        "ViewContent": { "count": 71, "cost": 317 },
+        "CompleteRegistration": { "count": 5, "cost": 4500 },
+        "InitiateCheckout": { "count": 3, "cost": 7500 },
+        "Purchase": { "count": 2, "revenue": 98000, "cost": 11250, "roas": 8.71 }
+      }
     },
     {
-      "id": "CAM-002",
-      "name": "[WakaLab] 리타겟팅_방문자_2504",
-      "status": "draft",
-      "startDate": "2026-04-15",
-      "endDate": null,
-      "budget": 600000,
-      "spent": 0,
-      "conversions": 0,
-      "revenue": 0,
-      "roas": 0,
-      "objective": "Purchase",
-      "platform": "Meta",
-      "account": "Wakawaka 광고 계정",
-      "creatives": [
-        {
-          "id": "CR-RT1",
-          "name": "리타겟 A — 무료 체험 강조",
-          "status": "draft",
-          "copy": "🎉 \"아직 안 써보셨나요? 1개월 무료!\"",
-          "cta": "무료 체험 시작",
-          "impressions": 0,
-          "clicks": 0,
-          "conversions": 0,
-          "ctr": 0,
-          "cpc": 0
-        }
-      ]
+      "date": "2026-03-27",
+      "creative": "ad-b-competitor",
+      "impressions": 2900, "reach": 2600, "frequency": 1.12,
+      "clicks": 78, "link_clicks": 64, "ctr": 2.69, "cpc": 288, "cpm": 7759,
+      "spend": 22500, "landing_page_views": 55,
+      "conversions": 2, "cvr": 3.13, "cpa": 11250, "roas": 4.36,
+      "quality_ranking": "AVERAGE", "engagement_rate_ranking": "ABOVE_AVERAGE", "conversion_rate_ranking": "AVERAGE",
+      "funnel": {
+        "ViewContent": { "count": 55, "cost": 409 },
+        "CompleteRegistration": { "count": 3, "cost": 7500 },
+        "InitiateCheckout": { "count": 2, "cost": 11250 },
+        "Purchase": { "count": 1, "revenue": 49000, "cost": 22500, "roas": 2.18 }
+      }
+    },
+    {
+      "date": "2026-03-27",
+      "creative": "ad-c-workflow",
+      "impressions": 2600, "reach": 2300, "frequency": 1.13,
+      "clicks": 72, "link_clicks": 58, "ctr": 2.77, "cpc": 313, "cpm": 8654,
+      "spend": 22500, "landing_page_views": 48,
+      "conversions": 1, "cvr": 1.72, "cpa": 22500, "roas": 2.18,
+      "quality_ranking": "AVERAGE", "engagement_rate_ranking": "AVERAGE", "conversion_rate_ranking": "BELOW_AVERAGE_20",
+      "funnel": {
+        "ViewContent": { "count": 48, "cost": 469 },
+        "CompleteRegistration": { "count": 2, "cost": 11250 },
+        "InitiateCheckout": { "count": 1, "cost": 22500 },
+        "Purchase": { "count": 0, "revenue": 0, "cost": 0, "roas": 0 }
+      }
+    },
+    {
+      "date": "2026-03-27",
+      "creative": "ad-d-proof",
+      "impressions": 2200, "reach": 1950, "frequency": 1.13,
+      "clicks": 52, "link_clicks": 41, "ctr": 2.36, "cpc": 433, "cpm": 10227,
+      "spend": 22500, "landing_page_views": 34,
+      "conversions": 1, "cvr": 2.44, "cpa": 22500, "roas": 2.18,
+      "quality_ranking": "BELOW_AVERAGE_20", "engagement_rate_ranking": "AVERAGE", "conversion_rate_ranking": "BELOW_AVERAGE_20",
+      "funnel": {
+        "ViewContent": { "count": 34, "cost": 662 },
+        "CompleteRegistration": { "count": 1, "cost": 22500 },
+        "InitiateCheckout": { "count": 1, "cost": 22500 },
+        "Purchase": { "count": 0, "revenue": 0, "cost": 0, "roas": 0 }
+      }
+    },
+    {
+      "date": "2026-03-28",
+      "creative": "ad-a-data",
+      "impressions": 3500, "reach": 3050, "frequency": 1.15,
+      "clicks": 112, "link_clicks": 94, "ctr": 3.20, "cpc": 213, "cpm": 6857,
+      "spend": 24000, "landing_page_views": 81,
+      "conversions": 4, "cvr": 4.26, "cpa": 6000, "roas": 8.17,
+      "quality_ranking": "ABOVE_AVERAGE", "engagement_rate_ranking": "ABOVE_AVERAGE", "conversion_rate_ranking": "ABOVE_AVERAGE",
+      "funnel": {
+        "ViewContent": { "count": 81, "cost": 296 },
+        "CompleteRegistration": { "count": 6, "cost": 4000 },
+        "InitiateCheckout": { "count": 4, "cost": 6000 },
+        "Purchase": { "count": 3, "revenue": 147000, "cost": 8000, "roas": 18.38 }
+      }
+    },
+    {
+      "date": "2026-03-28",
+      "creative": "ad-b-competitor",
+      "impressions": 3100, "reach": 2750, "frequency": 1.13,
+      "clicks": 85, "link_clicks": 70, "ctr": 2.74, "cpc": 271, "cpm": 7419,
+      "spend": 23000, "landing_page_views": 60,
+      "conversions": 2, "cvr": 2.86, "cpa": 11500, "roas": 4.26,
+      "quality_ranking": "AVERAGE", "engagement_rate_ranking": "ABOVE_AVERAGE", "conversion_rate_ranking": "AVERAGE",
+      "funnel": {
+        "ViewContent": { "count": 60, "cost": 383 },
+        "CompleteRegistration": { "count": 4, "cost": 5750 },
+        "InitiateCheckout": { "count": 2, "cost": 11500 },
+        "Purchase": { "count": 1, "revenue": 49000, "cost": 23000, "roas": 2.13 }
+      }
+    },
+    {
+      "date": "2026-03-28",
+      "creative": "ad-c-workflow",
+      "impressions": 2800, "reach": 2500, "frequency": 1.12,
+      "clicks": 76, "link_clicks": 62, "ctr": 2.71, "cpc": 303, "cpm": 8214,
+      "spend": 23000, "landing_page_views": 52,
+      "conversions": 1, "cvr": 1.61, "cpa": 23000, "roas": 2.13,
+      "quality_ranking": "AVERAGE", "engagement_rate_ranking": "AVERAGE", "conversion_rate_ranking": "BELOW_AVERAGE_20",
+      "funnel": {
+        "ViewContent": { "count": 52, "cost": 442 },
+        "CompleteRegistration": { "count": 2, "cost": 11500 },
+        "InitiateCheckout": { "count": 1, "cost": 23000 },
+        "Purchase": { "count": 1, "revenue": 49000, "cost": 23000, "roas": 2.13 }
+      }
+    },
+    {
+      "date": "2026-03-28",
+      "creative": "ad-d-proof",
+      "impressions": 2400, "reach": 2100, "frequency": 1.14,
+      "clicks": 55, "link_clicks": 44, "ctr": 2.29, "cpc": 418, "cpm": 9583,
+      "spend": 23000, "landing_page_views": 37,
+      "conversions": 0, "cvr": 0, "cpa": 0, "roas": 0,
+      "quality_ranking": "BELOW_AVERAGE_20", "engagement_rate_ranking": "AVERAGE", "conversion_rate_ranking": "BELOW_AVERAGE_35",
+      "funnel": {
+        "ViewContent": { "count": 37, "cost": 622 },
+        "CompleteRegistration": { "count": 1, "cost": 23000 },
+        "InitiateCheckout": { "count": 0, "cost": 0 },
+        "Purchase": { "count": 0, "revenue": 0, "cost": 0, "roas": 0 }
+      }
     }
   ]
 }
