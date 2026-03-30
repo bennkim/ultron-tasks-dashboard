@@ -246,6 +246,23 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .funnel-fill{height:22px;border-radius:4px;min-width:2px;transition:width .3s}
 .funnel-label{font-size:.75rem;width:80px;text-align:right;color:var(--muted)}
 .funnel-value{font-size:.75rem;font-weight:600}
+/* Media Upload */
+.media-section{margin-top:24px}
+.creative-media-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.creative-media-card h4{font-size:.9rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}
+.media-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg);aspect-ratio:16/9}
+.media-item img,.media-item video{width:100%;height:100%;object-fit:cover;cursor:pointer}
+.media-item .media-delete{position:absolute;top:4px;right:4px;background:rgba(248,81,73,.85);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.media-item:hover .media-delete{opacity:1}
+.media-upload-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;color:var(--muted);font-size:.8rem;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.media-upload-zone:hover{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,.05)}
+.media-upload-zone .upload-icon{font-size:1.5rem}
+.media-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:100;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s}
+.media-lightbox.active{opacity:1;pointer-events:auto}
+.media-lightbox img,.media-lightbox video{max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain}
+.media-lightbox .lb-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:1.2rem;cursor:pointer}
+.media-count{font-size:.7rem;color:var(--muted);font-weight:400}
 @media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -340,6 +357,29 @@ ${adsDaily.map(d=>`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?
 </tbody>
 </table>
 </div></div>
+</div>
+
+<div class="media-section">
+<div class="section-title">📁 소재별 콘텐츠 미디어</div>
+${creativeKeys.map(k => `
+<div class="creative-media-card">
+  <h4>🎨 ${adsCreatives[k].label} <span class="media-count" id="count-${k}"></span></h4>
+  <p style="font-size:.75rem;color:var(--muted);margin-bottom:8px">utm_content: ${k} · "${adsCreatives[k].copy}"</p>
+  <div class="media-grid" id="media-${k}">
+    <div class="media-upload-zone" onclick="triggerUpload('${k}')">
+      <span class="upload-icon">📤</span>
+      <span>클릭하여 업로드</span>
+      <span style="font-size:.7rem">이미지/동영상</span>
+    </div>
+  </div>
+  <input type="file" id="input-${k}" multiple accept="image/*,video/*" style="display:none" onchange="handleUpload('${k}',this)">
+</div>`).join('')}
+</div>
+</div>
+
+<div class="media-lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lb-close" onclick="closeLightbox(event)">✕</button>
+  <div id="lb-content"></div>
 </div>
 
 <!-- Sub: Funnel Analysis -->
@@ -510,6 +550,76 @@ function exportXLSX(){
   XLSX.writeFile(wb,campaign+'_report.xlsx');
   showToast();
 }
+
+// ═══ MEDIA UPLOAD (localStorage) ═══
+const MEDIA_KEY='ultron_ad_media_';
+function getMedia(key){try{return JSON.parse(localStorage.getItem(MEDIA_KEY+key)||'[]');}catch{return[];}}
+function saveMedia(key,arr){try{localStorage.setItem(MEDIA_KEY+key,JSON.stringify(arr));}catch(e){alert('저장 용량 초과! 파일 크기를 줄여주세요.');}}
+function triggerUpload(key){document.getElementById('input-'+key).click();}
+function handleUpload(key,input){
+  const files=Array.from(input.files);
+  if(!files.length)return;
+  const media=getMedia(key);
+  let loaded=0;
+  files.forEach(file=>{
+    if(file.size>5*1024*1024){alert(file.name+': 5MB 초과. 스킵합니다.');loaded++;return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      media.push({name:file.name,type:file.type,data:e.target.result,date:new Date().toISOString()});
+      loaded++;
+      if(loaded===files.length){saveMedia(key,media);renderMedia(key);}
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function deleteMedia(key,idx){
+  const media=getMedia(key);
+  media.splice(idx,1);
+  saveMedia(key,media);
+  renderMedia(key);
+}
+function renderMedia(key){
+  const media=getMedia(key);
+  const grid=document.getElementById('media-'+key);
+  const countEl=document.getElementById('count-'+key);
+  countEl.textContent=media.length>0?media.length+'개 파일':'';
+  // Keep upload zone, clear rest
+  const zone=grid.querySelector('.media-upload-zone');
+  grid.innerHTML='';
+  media.forEach((m,i)=>{
+    const item=document.createElement('div');
+    item.className='media-item';
+    if(m.type&&m.type.startsWith('video')){
+      item.innerHTML='<video src="'+m.data+'" onclick="openLightbox(\\''+key+'\\','+i+')" muted></video><button class="media-delete" onclick="event.stopPropagation();deleteMedia(\\''+key+'\\','+i+')">✕</button>';
+    } else {
+      item.innerHTML='<img src="'+m.data+'" alt="'+m.name+'" onclick="openLightbox(\\''+key+'\\','+i+')"><button class="media-delete" onclick="event.stopPropagation();deleteMedia(\\''+key+'\\','+i+')">✕</button>';
+    }
+    grid.appendChild(item);
+  });
+  grid.appendChild(zone);
+}
+function openLightbox(key,idx){
+  const media=getMedia(key);
+  const m=media[idx];
+  if(!m)return;
+  const lb=document.getElementById('lightbox');
+  const content=document.getElementById('lb-content');
+  if(m.type&&m.type.startsWith('video')){
+    content.innerHTML='<video src="'+m.data+'" controls autoplay style="max-width:90vw;max-height:90vh;border-radius:8px"></video>';
+  } else {
+    content.innerHTML='<img src="'+m.data+'" style="max-width:90vw;max-height:90vh;border-radius:8px">';
+  }
+  lb.classList.add('active');
+}
+function closeLightbox(e){
+  if(e.target.id==='lightbox'||e.target.classList.contains('lb-close')){
+    document.getElementById('lightbox').classList.remove('active');
+    document.getElementById('lb-content').innerHTML='';
+  }
+}
+// Init: render saved media on load
+CREATIVE_KEYS.forEach(k=>renderMedia(k));
 <\/script>
 </body>
 </html>`;
