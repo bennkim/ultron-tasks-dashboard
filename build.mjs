@@ -255,6 +255,7 @@ h1{font-size:1.5rem;font-weight:600;margin-bottom:4px}
 .row-media-thumb:hover .thumb-del{opacity:1}
 .row-upload-btn{background:var(--border);border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:4px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .row-upload-btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(88,166,255,.1)}
+.kw-tag{display:inline-block;font-size:.6rem;padding:1px 6px;border-radius:4px;background:rgba(88,166,255,.12);color:var(--blue);margin:1px 2px;white-space:nowrap}
 .media-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:100;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .2s}
 .media-lightbox.active{opacity:1;pointer-events:auto}
 .media-lightbox img,.media-lightbox video{max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain}
@@ -337,9 +338,9 @@ ${dailyTotals.map(d=>`<tr><td>${d.date}</td><td class="num">${fmt(d.impressions)
 <div class="section-title">🎨 소재별 누적 성과 (${adsMeta.campaignName || ''})</div>
 <div class="panel"><div style="overflow-x:auto">
 <table class="data-table">
-<thead><tr><th>소재</th><th>utm_content</th><th>노출</th><th>도달</th><th>클릭</th><th>CTR</th><th>CPC</th><th>CPM</th><th>소진액</th><th>전환</th><th>CVR</th><th>CPA</th><th>매출</th><th>ROAS</th></tr></thead>
+<thead><tr><th>소재</th><th>키워드</th><th>utm_content</th><th>노출</th><th>도달</th><th>클릭</th><th>CTR</th><th>CPC</th><th>CPM</th><th>소진액</th><th>전환</th><th>CVR</th><th>CPA</th><th>매출</th><th>ROAS</th></tr></thead>
 <tbody>
-${creativeKeys.map(k=>{const t=creativeTotals[k];return`<tr><td><strong>${t.label}</strong></td><td style="font-size:.75rem;color:var(--muted)">${k}</td><td class="num">${fmt(t.impressions)}</td><td class="num">${fmt(t.reach)}</td><td class="num">${fmt(t.clicks)}</td><td class="num">${t.ctr.toFixed(2)}%</td><td class="num">${fmtWon(t.cpc)}</td><td class="num">${fmtWon(t.cpm)}</td><td class="num">${fmtWon(t.spend)}</td><td class="num conv">${t.conversions}</td><td class="num">${t.cvr.toFixed(2)}%</td><td class="num">${t.cpa>0?fmtWon(t.cpa):'—'}</td><td class="num">${fmtWon(t.revenue)}</td><td class="num" style="color:${roasColor(t.roas)}">${t.roas.toFixed(2)}x</td></tr>`;}).join('')}
+${creativeKeys.map(k=>{const t=creativeTotals[k];const tags=(adsCreatives[k].tags||[]).map(t=>'<span class="kw-tag">'+t+'</span>').join('');return`<tr><td><strong>${t.label}</strong></td><td>${tags}</td><td style="font-size:.75rem;color:var(--muted)">${k}</td><td class="num">${fmt(t.impressions)}</td><td class="num">${fmt(t.reach)}</td><td class="num">${fmt(t.clicks)}</td><td class="num">${t.ctr.toFixed(2)}%</td><td class="num">${fmtWon(t.cpc)}</td><td class="num">${fmtWon(t.cpm)}</td><td class="num">${fmtWon(t.spend)}</td><td class="num conv">${t.conversions}</td><td class="num">${t.cvr.toFixed(2)}%</td><td class="num">${t.cpa>0?fmtWon(t.cpa):'—'}</td><td class="num">${fmtWon(t.revenue)}</td><td class="num" style="color:${roasColor(t.roas)}">${t.roas.toFixed(2)}x</td></tr>`;}).join('')}
 </tbody>
 </table>
 </div></div>
@@ -349,7 +350,7 @@ ${creativeKeys.map(k=>{const t=creativeTotals[k];return`<tr><td><strong>${t.labe
 <table class="data-table">
 <thead><tr><th>날짜</th><th>소재</th><th>소재 미디어</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>전환</th><th>CVR</th><th>CPA</th><th>ROAS</th><th>품질</th><th>참여도</th><th>전환율</th></tr></thead>
 <tbody>
-${adsDaily.map((d,i)=>`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?.label||d.creative}</strong></td><td class="media-cell"><div class="row-media" id="rowmedia-${i}"></div><button class="row-upload-btn" onclick="triggerRowUpload('${d.creative}',${i})">📤</button><input type="file" id="rowinput-${i}" multiple accept="image/*,video/*" style="display:none" onchange="handleRowUpload('${d.creative}',${i},this)"></td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num conv">${d.conversions}</td><td class="num">${d.cvr.toFixed(2)}%</td><td class="num">${d.cpa>0?fmtWon(d.cpa):'—'}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td><td>${rankBadge(d.quality_ranking)}</td><td>${rankBadge(d.engagement_rate_ranking)}</td><td>${rankBadge(d.conversion_rate_ranking)}</td></tr>`).join('')}
+${adsDaily.map((d,i)=>{const tags=(adsCreatives[d.creative]?.tags||[]).map(t=>'<span class="kw-tag">'+t+'</span>').join('');return`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?.label||d.creative}</strong><div style="margin-top:2px">${tags}</div></td><td class="media-cell"><div class="row-media" id="rowmedia-${i}"></div><button class="row-upload-btn" onclick="triggerRowUpload('${d.creative}',${i})">📤</button><input type="file" id="rowinput-${i}" multiple accept="image/*,video/*" style="display:none" onchange="handleRowUpload('${d.creative}',${i},this)"></td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num conv">${d.conversions}</td><td class="num">${d.cvr.toFixed(2)}%</td><td class="num">${d.cpa>0?fmtWon(d.cpa):'—'}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td><td>${rankBadge(d.quality_ranking)}</td><td>${rankBadge(d.engagement_rate_ranking)}</td><td>${rankBadge(d.conversion_rate_ranking)}</td></tr>`;}).join('')}
 </tbody>
 </table>
 </div></div>
