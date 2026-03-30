@@ -351,9 +351,9 @@ ${creativeKeys.map(k=>{const t=creativeTotals[k];return`<tr><td><strong>${t.labe
 <div class="section-title">📅 소재별 일별 비교</div>
 <div class="panel"><div style="overflow-x:auto">
 <table class="data-table">
-<thead><tr><th>날짜</th><th>소재</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>전환</th><th>ROAS</th><th>품질</th><th>참여도</th><th>전환율</th></tr></thead>
+<thead><tr><th>날짜</th><th>소재</th><th>노출</th><th>클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>전환</th><th>CVR</th><th>CPA</th><th>ROAS</th><th>품질</th><th>참여도</th><th>전환율</th></tr></thead>
 <tbody>
-${adsDaily.map(d=>`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?.label||d.creative}</strong></td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num conv">${d.conversions}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td><td>${rankBadge(d.quality_ranking)}</td><td>${rankBadge(d.engagement_rate_ranking)}</td><td>${rankBadge(d.conversion_rate_ranking)}</td></tr>`).join('')}
+${adsDaily.map(d=>`<tr><td>${d.date}</td><td><strong>${adsCreatives[d.creative]?.label||d.creative}</strong></td><td class="num">${fmt(d.impressions)}</td><td class="num">${fmt(d.clicks)}</td><td class="num">${d.ctr.toFixed(2)}%</td><td class="num">${fmtWon(d.cpc)}</td><td class="num">${fmtWon(d.spend)}</td><td class="num conv">${d.conversions}</td><td class="num">${d.cvr.toFixed(2)}%</td><td class="num">${d.cpa>0?fmtWon(d.cpa):'—'}</td><td class="num" style="color:${roasColor(d.roas)}">${d.roas.toFixed(2)}x</td><td>${rankBadge(d.quality_ranking)}</td><td>${rankBadge(d.engagement_rate_ranking)}</td><td>${rankBadge(d.conversion_rate_ranking)}</td></tr>`).join('')}
 </tbody>
 </table>
 </div></div>
