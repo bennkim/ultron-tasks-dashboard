@@ -226,7 +226,8 @@ h1{font-size:1.6rem;font-weight:700;color:var(--blue-dark);margin-bottom:4px;let
 .badge-backlog{background:rgba(100,116,139,.08);color:var(--muted)}.badge-review{background:rgba(139,92,246,.08);color:var(--purple)}
 
 /* ICE */
-.ice{font-weight:700;font-size:.78rem;padding:2px 8px;border-radius:6px}
+.ice{font-weight:700;font-size:.78rem;padding:2px 8px;border-radius:6px;display:inline-block}
+td:has(.ice){text-align:right}
 .ice-critical{color:#fff;background:var(--red)}.ice-high{color:#fff;background:var(--orange)}
 .ice-medium{color:#fff;background:var(--yellow)}.ice-low{color:var(--muted);background:rgba(100,116,139,.08)}
 
