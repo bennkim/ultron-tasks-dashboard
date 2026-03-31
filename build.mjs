@@ -404,8 +404,9 @@ function openHistoryModal(id,title){
   if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
   }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
   document.getElementById('historyOverlay').classList.add('active');
+  document.body.style.overflow='hidden';
 }
-function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');}
+function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');document.body.style.overflow='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHistoryModal();});
 
 const API='https://wakalab-media-worker.kimbang0105.workers.dev';
