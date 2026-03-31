@@ -283,6 +283,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .media-lightbox .lb-close:hover{background:rgba(255,255,255,.25)}
 .red-dot{display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%;margin-left:4px;vertical-align:middle;animation:dot-pulse 1.5s ease-in-out infinite}
 @keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav-badge{background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:auto;min-width:18px;text-align:center;line-height:1.3}
 
 /* ID Links */
 .id-link{cursor:pointer;transition:opacity .15s}.id-link:hover{opacity:.7;text-decoration:underline}
@@ -374,7 +375,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="sidebar-nav">
     <div class="nav-item active" onclick="navigate('home',this)"><span class="nav-icon">🏠</span>Home</div>
-    <div class="nav-item" data-nav="tasks" onclick="navigate('tasks',this);markVisited()"><span class="nav-icon">📋</span>Tasks</div>
+    <div class="nav-item" data-nav="tasks" onclick="navigate('tasks',this)"><span class="nav-icon">📋</span>Tasks</div>
     <div class="nav-item" onclick="navigate('ads',this)"><span class="nav-icon">📢</span>Ad Manager</div>
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
@@ -557,30 +558,31 @@ const TASK_HISTORY=${JSON.stringify(taskHistory)};
 const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
 const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
 // ═══ RED DOT NOTIFICATIONS ═══
-(function(){
-  const lastVisited=localStorage.getItem('lastVisited')||'1970-01-01';
-  let hasNew=false;
-  Object.entries(TASK_HISTORY).forEach(([id,entries])=>{
-    const newest=entries.reduce((m,e)=>e.date>m?e.date:m,'');
-    if(newest>lastVisited){
-      const dot=document.querySelector('[data-dot="'+id+'"]');
-      if(dot){dot.style.display='inline-block';hasNew=true;}
-    }
+const TASK_LATEST=${JSON.stringify(Object.fromEntries(Object.entries(taskHistory).map(([id,entries])=>[id,entries.reduce((m,e)=>e.date>m?e.date:m,'')])))};
+function getReadMap(){try{return JSON.parse(localStorage.getItem('taskReadMap')||'{}');}catch(e){return {};}}
+function saveReadMap(m){localStorage.setItem('taskReadMap',JSON.stringify(m));}
+function updateRedDots(){
+  const readMap=getReadMap();
+  let count=0;
+  document.querySelectorAll('[data-dot]').forEach(dot=>{
+    const id=dot.dataset.dot;
+    const latest=TASK_LATEST[id];
+    if(latest&&(!readMap[id]||readMap[id]<latest)){dot.style.display='inline-block';count++;}
+    else{dot.style.display='none';}
   });
-  // sidebar Tasks nav red dot
-  if(hasNew){
-    const tasksNav=document.querySelector('[data-nav="tasks"]');
-    if(tasksNav&&!tasksNav.querySelector('.red-dot')){
-      const nd=document.createElement('span');nd.className='red-dot';nd.style.marginLeft='6px';
-      tasksNav.appendChild(nd);
-    }
-  }
-})();
-function markVisited(){localStorage.setItem('lastVisited',new Date().toISOString().slice(0,10));document.querySelectorAll('[data-dot]').forEach(d=>d.style.display='none');const nd=document.querySelector('[data-nav="tasks"] .red-dot');if(nd)nd.remove();}
+  const tasksNav=document.querySelector('[data-nav="tasks"]');
+  const existingDot=tasksNav?.querySelector('.nav-badge');
+  if(count>0){
+    if(!existingDot){const b=document.createElement('span');b.className='nav-badge';b.textContent=count;tasksNav.appendChild(b);}
+    else{existingDot.textContent=count;}
+  }else if(existingDot){existingDot.remove();}
+  return count;
+}
+updateRedDots();
+function markItemRead(id){const m=getReadMap();m[id]=new Date().toISOString().slice(0,10);saveReadMap(m);updateRedDots();}
 
 function openHistoryModal(id,title){
-  // clear red dot for this item
-  const dot=document.querySelector('[data-dot="'+id+'"]');if(dot)dot.style.display='none';
+  markItemRead(id);
   document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
   const entries=TASK_HISTORY[id]||[];
   const body=document.getElementById('historyBody');
