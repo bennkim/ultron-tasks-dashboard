@@ -298,6 +298,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .timeline-content{flex:1}.tl-meta{font-size:.72rem;color:var(--muted);margin-bottom:3px;font-weight:500}.tl-note{font-size:.85rem;color:var(--text);line-height:1.5}
 .no-history{color:var(--muted);font-size:.85rem;padding:8px 0}
 
+/* Leads */
+.lead-email{color:var(--blue);font-weight:500;font-size:.8rem}
+.lead-domain a{color:var(--blue);text-decoration:none;font-size:.8rem}.lead-domain a:hover{text-decoration:underline}
+.lead-no-email{color:var(--muted);font-size:.75rem;font-style:italic}
+
 /* ═══ RESPONSIVE ═══ */
 /* Tablet (768–1023px): sidebar collapsed to icons */
 @media(max-width:1023px) and (min-width:768px){
@@ -354,6 +359,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item active" onclick="navigate('home',this)"><span class="nav-icon">🏠</span>Home</div>
     <div class="nav-item" onclick="navigate('tasks',this)"><span class="nav-icon">📋</span>Tasks</div>
     <div class="nav-item" onclick="navigate('ads',this)"><span class="nav-icon">📢</span>Ad Manager</div>
+    <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
     <div>빌드: ${now}</div>
@@ -468,6 +474,27 @@ ${epics.map(renderEpic).join('')}
 
 </div><!-- /ad-content -->
 </div><!-- /section-ads -->
+
+<!-- 📧 LEADS -->
+<div id="section-leads" class="main-section">
+<h2 style="font-size:1.2rem;font-weight:700;color:var(--blue-dark);margin-bottom:20px">📧 Leads Pipeline</h2>
+<div id="leads-loading" style="text-align:center;padding:60px;color:var(--muted)">
+  <div style="font-size:2rem;margin-bottom:8px">⏳</div>
+  <p>리드 데이터 로딩 중...</p>
+</div>
+<div id="leads-content" style="display:none">
+<div id="leads-kpi" class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-bottom:20px"></div>
+<div class="filters" id="leads-filters">
+  <button class="filter-btn active" onclick="filterLeads('all',this)">전체</button>
+  <button class="filter-btn" onclick="filterLeads('has-email',this)">📧 이메일 있음</button>
+  <button class="filter-btn" onclick="filterLeads('no-email',this)">❌ 이메일 없음</button>
+</div>
+<div class="panel"><div style="overflow-x:auto"><table class="data-table" id="leads-table">
+<thead><tr><th>#</th><th>에이전시</th><th>도메인</th><th>이메일</th><th>지역</th><th>규모</th><th>Clutch</th></tr></thead>
+<tbody id="leads-body"></tbody>
+</table></div></div>
+</div>
+</div><!-- /section-leads -->
 
 </div><!-- /main -->
 </div><!-- /app -->
@@ -687,8 +714,42 @@ function renderAllRowMedia(){
 function openLightbox(url,isVideo){const lb=document.getElementById('lightbox'),content=document.getElementById('lb-content');content.innerHTML=isVideo?'<video src="'+url+'" controls autoplay style="max-width:90vw;max-height:90vh;border-radius:12px"></video>':'<img src="'+url+'" style="max-width:90vw;max-height:90vh;border-radius:12px">';lb.classList.add('active');}
 function closeLightbox(e){if(e.target.id==='lightbox'||e.target.classList.contains('lb-close')){document.getElementById('lightbox').classList.remove('active');document.getElementById('lb-content').innerHTML='';}}
 
+// ═══ LEADS ═══
+let LEADS=[];
+async function loadLeads(){
+  try{
+    const res=await fetch('https://raw.githubusercontent.com/bennkim/ultron-tasks-dashboard/main/leads.json');
+    LEADS=await res.json();
+    renderLeads();
+    document.getElementById('leads-loading').style.display='none';
+    document.getElementById('leads-content').style.display='block';
+  }catch(e){
+    document.getElementById('leads-loading').innerHTML='<div style="color:var(--red)">❌ 리드 데이터 로딩 실패</div>';
+  }
+}
+function renderLeads(filter='all'){
+  let data=LEADS;
+  if(filter==='has-email')data=LEADS.filter(l=>l.primary_email);
+  if(filter==='no-email')data=LEADS.filter(l=>!l.primary_email);
+  const withEmail=LEADS.filter(l=>l.primary_email).length;
+  document.getElementById('leads-kpi').innerHTML=
+    '<div class="kpi kpi-sm"><div class="kpi-value">'+LEADS.length+'</div><div class="kpi-label">전체 리드</div></div>'+
+    '<div class="kpi kpi-sm"><div class="kpi-value" style="color:var(--green)">'+withEmail+'</div><div class="kpi-label">이메일 확보</div></div>'+
+    '<div class="kpi kpi-sm"><div class="kpi-value" style="color:var(--red)">'+(LEADS.length-withEmail)+'</div><div class="kpi-label">이메일 미확보</div></div>'+
+    '<div class="kpi kpi-sm"><div class="kpi-value" style="color:var(--blue)">'+Math.round(withEmail/LEADS.length*100)+'%</div><div class="kpi-label">확보율</div></div>';
+  document.getElementById('leads-body').innerHTML=data.map((l,i)=>
+    '<tr><td>'+l.id+'</td><td><strong>'+l.name+'</strong></td>'+
+    '<td class="lead-domain"><a href="'+l.website+'" target="_blank">'+l.domain+'</a></td>'+
+    '<td>'+(l.primary_email?'<span class="lead-email">'+l.primary_email+(l.emails&&l.emails.length>1?' <span style="color:var(--muted);font-size:.7rem">(+' +(l.emails.length-1)+')</span>':'')+'</span>':'<span class="lead-no-email">미확보</span>')+'</td>'+
+    '<td style="font-size:.8rem">'+l.location+'</td>'+
+    '<td style="font-size:.8rem">'+(l.size||'—')+'</td>'+
+    '<td><a href="'+l.profile+'" target="_blank" style="font-size:.75rem;color:var(--blue)">프로필</a></td></tr>'
+  ).join('');
+}
+function filterLeads(f,btn){document.querySelectorAll('#leads-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLeads(f);}
+
 // ── Init ──
-loadAdData();
+loadAdData();loadLeads();
 <\/script>
 </body>
 </html>`;
