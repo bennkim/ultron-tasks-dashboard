@@ -310,7 +310,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cm-utm-url{flex:1}.cm-utm-copy{background:var(--blue);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:.75rem;cursor:pointer;font-weight:600;white-space:nowrap}.cm-utm-copy:hover{background:var(--blue-dark)}
 .cm-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .cm-media-item{border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;aspect-ratio:1;transition:transform .15s}.cm-media-item:hover{transform:scale(1.03)}
-.cm-media-item img,.cm-media-item video{width:100%;height:100%;object-fit:cover}
+.cm-media-item img,.cm-media-item video{width:100%;height:100%;object-fit:contain;background:#f8f9fa}
 .cm-empty{color:var(--muted);font-size:.8rem;font-style:italic}
 
 /* Leads */
