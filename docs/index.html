@@ -211,6 +211,21 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .timeline-content{flex:1}.tl-meta{font-size:.72rem;color:var(--muted);margin-bottom:3px;font-weight:500}.tl-note{font-size:.85rem;color:var(--text);line-height:1.5}
 .no-history{color:var(--muted);font-size:.85rem;padding:8px 0}
 
+/* Creative Detail Modal */
+.creative-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}.creative-modal-overlay.active{opacity:1;pointer-events:auto}
+.creative-modal{background:var(--card);border-radius:16px;padding:24px;max-width:600px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative}
+.creative-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.creative-modal-title{font-size:1rem;font-weight:700;color:var(--blue-dark)}
+.creative-modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:8px}.creative-modal-close:hover{background:var(--blue-light);color:var(--blue)}
+.cm-section{margin-bottom:18px}
+.cm-section h4{font-size:.85rem;font-weight:700;color:var(--blue-dark);margin-bottom:8px}
+.cm-utm{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.8rem;word-break:break-all;color:var(--blue);font-family:'SF Mono',Menlo,monospace;display:flex;align-items:center;gap:8px}
+.cm-utm-url{flex:1}.cm-utm-copy{background:var(--blue);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:.75rem;cursor:pointer;font-weight:600;white-space:nowrap}.cm-utm-copy:hover{background:var(--blue-dark)}
+.cm-media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.cm-media-item{border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;aspect-ratio:1;transition:transform .15s}.cm-media-item:hover{transform:scale(1.03)}
+.cm-media-item img,.cm-media-item video{width:100%;height:100%;object-fit:cover}
+.cm-empty{color:var(--muted);font-size:.8rem;font-style:italic}
+
 /* Leads */
 .lead-email{color:var(--blue);font-weight:500;font-size:.8rem}
 .lead-domain a{color:var(--blue);text-decoration:none;font-size:.8rem}.lead-domain a:hover{text-decoration:underline}
@@ -275,7 +290,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 3. 31. 오후 4:36:41</div>
+    <div>빌드: 2026. 3. 31. 오후 7:58:49</div>
     <div style="margin-top:4px">진행률 42% (23/55)</div>
     <div class="progress-mini"><div class="progress-mini-fill" style="width:42%"></div></div>
   </div>
@@ -413,6 +428,12 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div><!-- /app -->
 
 <!-- Modals & overlays -->
+<div class="creative-modal-overlay" id="creativeOverlay" onclick="if(event.target===this)closeCreativeModal()">
+  <div class="creative-modal">
+    <div class="creative-modal-header"><span class="creative-modal-title" id="cmTitle"></span><button class="creative-modal-close" onclick="closeCreativeModal()">✕</button></div>
+    <div id="cmBody"></div>
+  </div>
+</div>
 <div class="media-lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lb-close" onclick="closeLightbox(event)">✕</button>
   <div id="lb-content"></div>
@@ -456,7 +477,7 @@ function openHistoryModal(id,title){
   document.body.style.overflow='hidden';
 }
 function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');document.body.style.overflow='';}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHistoryModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal();closeCreativeModal();}});
 
 // ═══ FILTERS ═══
 function filterBy(role,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.task-row').forEach(row=>{if(role==='all'){row.style.display='';return;}const a=row.querySelector('.task-assignee')?.textContent||'';row.style.display=a.includes(role)?'':'none';});}
@@ -534,7 +555,7 @@ function renderCreativeTotals(){
     const ctr=imp>0?(clicks/imp*100):0,cpc=clicks>0?Math.round(spend/clicks):0,cpm=imp>0?Math.round(spend/imp*1000):0,cvr=clicks>0?(conv/clicks*100):0,cpa=conv>0?Math.round(spend/conv):0;
     const metricIds=rows.map(r=>r.id),rev=STATE.funnel.filter(f=>f.stage==='Purchase'&&metricIds.includes(f.daily_metric_id)).reduce((s,f)=>s+f.revenue,0),roas=spend>0?(rev/spend):0;
     const tags=JSON.parse(c.tags||'[]').map(t=>'<span class="kw-tag">'+t+'</span>').join('');
-    return '<tr><td><strong>'+c.label+'</strong></td><td>'+tags+'</td><td style="font-size:.75rem;color:var(--muted)">'+c.key+'</td><td class="num">'+fmt(imp)+'</td><td class="num">'+fmt(reach)+'</td><td class="num">'+fmt(clicks)+'</td><td class="num">'+ctr.toFixed(2)+'%</td><td class="num">'+fmtWon(cpc)+'</td><td class="num">'+fmtWon(cpm)+'</td><td class="num">'+fmtWon(spend)+'</td><td class="num conv">'+conv+'</td><td class="num">'+cvr.toFixed(2)+'%</td><td class="num">'+(cpa>0?fmtWon(cpa):'—')+'</td><td class="num">'+fmtWon(rev)+'</td><td class="num" style="color:'+roasColor(roas)+'">'+roas.toFixed(2)+'x</td></tr>';
+    return '<tr style="cursor:pointer" onclick="openCreativeModal(&quot;'+c.key+'&quot;,&quot;'+c.label.replace(/"/g,'')+'&quot;)"><td><strong>'+c.label+'</strong></td><td>'+tags+'</td><td style="font-size:.75rem;color:var(--muted)">'+c.key+'</td><td class="num">'+fmt(imp)+'</td><td class="num">'+fmt(reach)+'</td><td class="num">'+fmt(clicks)+'</td><td class="num">'+ctr.toFixed(2)+'%</td><td class="num">'+fmtWon(cpc)+'</td><td class="num">'+fmtWon(cpm)+'</td><td class="num">'+fmtWon(spend)+'</td><td class="num conv">'+conv+'</td><td class="num">'+cvr.toFixed(2)+'%</td><td class="num">'+(cpa>0?fmtWon(cpa):'—')+'</td><td class="num">'+fmtWon(rev)+'</td><td class="num" style="color:'+roasColor(roas)+'">'+roas.toFixed(2)+'x</td></tr>';
   }).join('');
 }
 function renderCreativeDaily(){
@@ -626,6 +647,43 @@ function renderAllRowMedia(){
 }
 function openLightbox(url,isVideo){const lb=document.getElementById('lightbox'),content=document.getElementById('lb-content');content.innerHTML=isVideo?'<video src="'+url+'" controls autoplay style="max-width:90vw;max-height:90vh;border-radius:12px"></video>':'<img src="'+url+'" style="max-width:90vw;max-height:90vh;border-radius:12px">';lb.classList.add('active');}
 function closeLightbox(e){if(e.target.id==='lightbox'||e.target.classList.contains('lb-close')){document.getElementById('lightbox').classList.remove('active');document.getElementById('lb-content').innerHTML='';}}
+
+// ═══ CREATIVE DETAIL MODAL ═══
+async function openCreativeModal(creativeKey,label){
+  document.getElementById('cmTitle').textContent=label+' ('+creativeKey+')';
+  let html='<div style="text-align:center;color:var(--muted)">로딩 중...</div>';
+  document.getElementById('cmBody').innerHTML=html;
+  document.getElementById('creativeOverlay').classList.add('active');
+  document.body.style.overflow='hidden';
+
+  // Fetch UTM + Media
+  const [utmData,mediaData]=await Promise.all([
+    fetch(API+'/api/utm').then(r=>r.json()).catch(()=>({links:[]})),
+    fetch(WORKER_URL+'/list/'+creativeKey).then(r=>r.json()).catch(()=>({files:[]}))
+  ]);
+  const utmLinks=(utmData.links||[]).filter(u=>u.creative_id===creativeKey||u.content===creativeKey);
+  const mediaFiles=mediaData.files||[];
+
+  html='<div class="cm-section"><h4>🔗 UTM 링크</h4>';
+  if(utmLinks.length>0){
+    html+=utmLinks.map(u=>'<div class="cm-utm" style="margin-bottom:6px"><span class="cm-utm-url">'+u.full_url+'</span><button class="cm-utm-copy" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent);showToast()">복사</button></div>').join('');
+  }else{html+='<p class="cm-empty">등록된 UTM 링크가 없습니다</p>';}
+  html+='</div>';
+
+  html+='<div class="cm-section"><h4>📸 소재 미디어</h4>';
+  if(mediaFiles.length>0){
+    html+='<div class="cm-media-grid">';
+    html+=mediaFiles.map(m=>{
+      const isVideo=m.name.match(/\.(mp4|mov|webm)$/i);
+      return '<div class="cm-media-item" onclick="openLightbox(&quot;'+m.url+'&quot;,'+(isVideo?'true':'false')+')">'+(isVideo?'<video src="'+m.url+'" muted></video>':'<img src="'+m.url+'" alt="'+m.name+'">')+'</div>';
+    }).join('');
+    html+='</div>';
+  }else{html+='<p class="cm-empty">등록된 미디어가 없습니다</p>';}
+  html+='</div>';
+
+  document.getElementById('cmBody').innerHTML=html;
+}
+function closeCreativeModal(){document.getElementById('creativeOverlay').classList.remove('active');document.body.style.overflow='';}
 
 // ═══ LEADS ═══
 let LEADS=[];
