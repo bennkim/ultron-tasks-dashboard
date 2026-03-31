@@ -72,9 +72,9 @@ const pct=total>0?Math.round((done/total)*100):0;
 const blockers=allTasks.filter(t=>t.status==='BLOCKED');
 const iceRanking=allTasks.filter(t=>t.status!=='DONE'&&t.iceScore>0).sort((a,b)=>b.iceScore-a.iceScore).slice(0,10);
 
-function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td class="task-id"><span class="id-link" onclick="openHistoryModal('${t.id}','${t.desc.replace(/'/g,"&#39;")}');event.stopPropagation()">${t.id}</span></td><td><span class="badge badge-${statusClass(t.status)}">${t.statusEmoji}</span></td><td class="task-assignee">${t.assignee}</td><td class="task-desc">${t.desc}</td><td><span class="ice ${iceClass(t.iceScore)}">${t.iceScore>0?t.iceScore:'—'}</span></td></tr>`;}
-function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id id-link" onclick="openHistoryModal('${s.id}','${s.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${s.id}</span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
-function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id id-link" onclick="openHistoryModal('${e.id}','${e.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${e.id}</span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
+function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td class="task-id"><span class="id-link" data-id="${t.id}" onclick="openHistoryModal('${t.id}','${t.desc.replace(/'/g,"&#39;")}');event.stopPropagation()">${t.id}<span class="red-dot" data-dot="${t.id}" style="display:none"></span></span></td><td><span class="badge badge-${statusClass(t.status)}">${t.statusEmoji}</span></td><td class="task-assignee">${t.assignee}</td><td class="task-desc">${t.desc}</td><td><span class="ice ${iceClass(t.iceScore)}">${t.iceScore>0?t.iceScore:'—'}</span></td></tr>`;}
+function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id id-link" data-id="${s.id}" onclick="openHistoryModal('${s.id}','${s.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${s.id}<span class="red-dot" data-dot="${s.id}" style="display:none"></span></span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
+function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id id-link" data-id="${e.id}" onclick="openHistoryModal('${e.id}','${e.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${e.id}<span class="red-dot" data-dot="${e.id}" style="display:none"></span></span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
 
 // No more build-time ads data — fetched from D1 API at runtime
 
@@ -281,6 +281,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .media-lightbox img,.media-lightbox video{max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .media-lightbox .lb-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s}
 .media-lightbox .lb-close:hover{background:rgba(255,255,255,.25)}
+.red-dot{display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%;margin-left:4px;vertical-align:middle;animation:dot-pulse 1.5s ease-in-out infinite}
+@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ID Links */
 .id-link{cursor:pointer;transition:opacity .15s}.id-link:hover{opacity:.7;text-decoration:underline}
@@ -372,7 +374,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div class="sidebar-nav">
     <div class="nav-item active" onclick="navigate('home',this)"><span class="nav-icon">🏠</span>Home</div>
-    <div class="nav-item" onclick="navigate('tasks',this)"><span class="nav-icon">📋</span>Tasks</div>
+    <div class="nav-item" data-nav="tasks" onclick="navigate('tasks',this);markVisited()"><span class="nav-icon">📋</span>Tasks</div>
     <div class="nav-item" onclick="navigate('ads',this)"><span class="nav-icon">📢</span>Ad Manager</div>
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
@@ -554,7 +556,31 @@ function toggleSidebar(){
 const TASK_HISTORY=${JSON.stringify(taskHistory)};
 const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
 const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
+// ═══ RED DOT NOTIFICATIONS ═══
+(function(){
+  const lastVisited=localStorage.getItem('lastVisited')||'1970-01-01';
+  let hasNew=false;
+  Object.entries(TASK_HISTORY).forEach(([id,entries])=>{
+    const newest=entries.reduce((m,e)=>e.date>m?e.date:m,'');
+    if(newest>lastVisited){
+      const dot=document.querySelector('[data-dot="'+id+'"]');
+      if(dot){dot.style.display='inline-block';hasNew=true;}
+    }
+  });
+  // sidebar Tasks nav red dot
+  if(hasNew){
+    const tasksNav=document.querySelector('[data-nav="tasks"]');
+    if(tasksNav&&!tasksNav.querySelector('.red-dot')){
+      const nd=document.createElement('span');nd.className='red-dot';nd.style.marginLeft='6px';
+      tasksNav.appendChild(nd);
+    }
+  }
+})();
+function markVisited(){localStorage.setItem('lastVisited',new Date().toISOString().slice(0,10));document.querySelectorAll('[data-dot]').forEach(d=>d.style.display='none');const nd=document.querySelector('[data-nav="tasks"] .red-dot');if(nd)nd.remove();}
+
 function openHistoryModal(id,title){
+  // clear red dot for this item
+  const dot=document.querySelector('[data-dot="'+id+'"]');if(dot)dot.style.display='none';
   document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
   const entries=TASK_HISTORY[id]||[];
   const body=document.getElementById('historyBody');
