@@ -53,24 +53,24 @@ _Jira 스타일 Epic/Story/Task 계층 관리_
 - 담당: CMO
 - `[WakaLab] 숏폼분석툴_AB테스트_2503` 구조 확정
 
-**[S-003] Meta Pixel 설치** 🔄 IN_PROGRESS
+**[S-003] Meta Pixel 설치** ✅ DONE (2026-03-31)
 - 담당: CTO
 
 | Task | 상태 | 담당 | 설명 | ICE |
 |------|------|------|------|-----|
 | T-001 | ✅ | CTO | Pixel base code 프론트엔드 삽입 | 10×9×8=720 🔴 |
 | T-002 | ✅ | CTO | develop 브랜치 푸시 | 8×9×9=648 🟠 |
-| T-003 | 🚨 | CTO | Cloudflare Pages 배포 (외부 담당자에게 요청 필요 — 의장 권한 밖) | 10×7×3=210 🟡 |
+| T-003 | ✅ | CTO | Cloudflare Pages 배포 완료 (2026-03-31) | 10×7×3=210 🟡 |
 | T-004 | 🔲 | CTO | CompleteRegistration 이벤트 테스트 | 10×8×7=560 🟠 |
 | T-005 | 🔲 | CTO | CAPI 설정 | 8×6×5=240 🟡 |
 
-**[S-004] Meta 앱 라이브 전환** 🚨 BLOCKED
+**[S-004] Meta 앱 라이브 전환** 📋 BACKLOG
 - 담당: 의장 (수동 작업 필요)
-- 블로커: developers.facebook.com에서 개발→라이브 전환
+- 보류: developers.facebook.com에서 개발→라이브 전환
 
 | Task | 상태 | 담당 | 설명 | ICE |
 |------|------|------|------|-----|
-| T-006 | 🚨 | 의장 | 앱 라이브 모드 전환 | 10×9×2=180 ⚪ |
+| T-006 | 📋 | 의장 | 앱 라이브 모드 전환 (보류) | 10×9×2=180 ⚪ |
 | T-007 | 🔲 | CTO | 도메인 인증 확인 | 7×7×6=294 🟡 |
 
 **[S-005] 캠페인 세팅 마무리** 🔄 IN_PROGRESS
