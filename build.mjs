@@ -7,6 +7,17 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 
 // ═══════════════════════════════════════════
+// TASK HISTORY PARSER
+// ═══════════════════════════════════════════
+let taskHistory = {};
+try {
+  const histFile = JSON.parse(readFileSync('task-history.json', 'utf-8'));
+  taskHistory = histFile.history || {};
+} catch(e) {
+  console.warn('task-history.json not found, skipping history');
+}
+
+// ═══════════════════════════════════════════
 // TASKS.MD PARSER
 // ═══════════════════════════════════════════
 const md = readFileSync('TASKS.md', 'utf-8');
@@ -61,9 +72,9 @@ const pct=total>0?Math.round((done/total)*100):0;
 const blockers=allTasks.filter(t=>t.status==='BLOCKED');
 const iceRanking=allTasks.filter(t=>t.status!=='DONE'&&t.iceScore>0).sort((a,b)=>b.iceScore-a.iceScore).slice(0,10);
 
-function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td class="task-id">${t.id}</td><td><span class="badge badge-${statusClass(t.status)}">${t.statusEmoji}</span></td><td class="task-assignee">${t.assignee}</td><td class="task-desc">${t.desc}</td><td><span class="ice ${iceClass(t.iceScore)}">${t.iceScore>0?t.iceScore:'—'}</span></td></tr>`;}
-function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id">${s.id}</span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
-function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id">${e.id}</span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
+function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td class="task-id"><span class="id-link" onclick="openHistoryModal('${t.id}','${t.desc.replace(/'/g,"&#39;")}');event.stopPropagation()">${t.id}</span></td><td><span class="badge badge-${statusClass(t.status)}">${t.statusEmoji}</span></td><td class="task-assignee">${t.assignee}</td><td class="task-desc">${t.desc}</td><td><span class="ice ${iceClass(t.iceScore)}">${t.iceScore>0?t.iceScore:'—'}</span></td></tr>`;}
+function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id id-link" onclick="openHistoryModal('${s.id}','${s.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${s.id}</span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
+function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id id-link" onclick="openHistoryModal('${e.id}','${e.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${e.id}</span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
 
 // No more build-time ads data — fetched from D1 API at runtime
 
@@ -249,7 +260,23 @@ h1{font-size:1.6rem;font-weight:700;color:var(--blue-dark);margin-bottom:4px;let
 .media-lightbox .lb-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s}
 .media-lightbox .lb-close:hover{background:rgba(255,255,255,.25)}
 
-@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.tabs{flex-direction:column}}
+/* ID Links */
+.id-link{cursor:pointer;transition:opacity .15s}.id-link:hover{opacity:.7;text-decoration:underline}
+
+/* History Modal */
+.history-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}.history-modal-overlay.active{opacity:1;pointer-events:auto}
+.history-modal{background:var(--card);border-radius:16px;padding:24px;max-width:520px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative}
+.history-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+.history-modal-title{font-size:1rem;font-weight:700;color:var(--blue-dark);flex:1}
+.history-modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:8px;transition:background .15s;flex-shrink:0}.history-modal-close:hover{background:var(--blue-light);color:var(--blue)}
+.timeline{display:flex;flex-direction:column;gap:12px}
+.timeline-item{display:flex;gap:12px;align-items:flex-start}
+.timeline-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;margin-top:2px}
+.tl-created{background:rgba(59,130,246,.12);color:var(--blue)}.tl-progress{background:rgba(245,158,11,.12);color:var(--yellow)}.tl-done{background:rgba(16,185,129,.12);color:var(--green)}.tl-blocked{background:rgba(239,68,68,.1);color:var(--red)}
+.timeline-content{flex:1}.tl-meta{font-size:.72rem;color:var(--muted);margin-bottom:3px;font-weight:500}.tl-note{font-size:.85rem;color:var(--text);line-height:1.5}
+.no-history{color:var(--muted);font-size:.85rem;padding:8px 0}
+
+@media(max-width:700px){.panels{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.utm-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.tabs{flex-direction:column}.history-modal{max-height:90vh;padding:18px}}
 </style>
 </head>
 </style>
@@ -358,9 +385,29 @@ ${epics.map(renderEpic).join('')}
   <div id="lb-content"></div>
 </div>
 <div class="copy-toast" id="copy-toast">✅ 복사됨!</div>
+<div class="history-modal-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistoryModal()">
+  <div class="history-modal">
+    <div class="history-modal-header"><span class="history-modal-title" id="historyTitle"></span><button class="history-modal-close" onclick="closeHistoryModal()">✕</button></div>
+    <div id="historyBody"></div>
+  </div>
+</div>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"><\/script>
 <script>
+const TASK_HISTORY=${JSON.stringify(taskHistory)};
+const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
+const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
+function openHistoryModal(id,title){
+  document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
+  const entries=TASK_HISTORY[id]||[];
+  const body=document.getElementById('historyBody');
+  if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
+  }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
+  document.getElementById('historyOverlay').classList.add('active');
+}
+function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHistoryModal();});
+
 const API='https://wakalab-media-worker.kimbang0105.workers.dev';
 const FUNNEL_STAGES=['ViewContent','CompleteRegistration','InitiateCheckout','Purchase'];
 const FUNNEL_KO={ViewContent:'페이지 조회',CompleteRegistration:'회원가입',InitiateCheckout:'결제 시작',Purchase:'결제 완료'};
