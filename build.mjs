@@ -276,7 +276,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .kw-tag{display:inline-block;font-size:.6rem;padding:2px 7px;border-radius:4px;background:var(--blue-light);color:var(--blue-dark);margin:1px 2px;white-space:nowrap;font-weight:600}
 
 /* Lightbox */
-.media-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(8px)}
+.media-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(8px)}
 .media-lightbox.active{opacity:1;pointer-events:auto}
 .media-lightbox img,.media-lightbox video{max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .media-lightbox .lb-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(4px);transition:background .15s}
