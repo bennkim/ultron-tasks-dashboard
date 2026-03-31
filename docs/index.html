@@ -180,7 +180,7 @@ h1{font-size:1.6rem;font-weight:700;color:var(--blue-dark);margin-bottom:4px;let
 </head>
 <body>
 <h1>📊 Ultron C-Suite Dashboard</h1>
-<p class="subtitle">마지막 빌드: 2026. 3. 31. 오전 10:31:47 · 캠페인: WakaLab_ABCD_테스트_260325 · 광고계정: act_1591471198924948</p>
+<p class="subtitle">마지막 빌드: 2026. 3. 31. 오전 11:40:43 · 캠페인: WakaLab_ABCD_테스트_260325 · 광고계정: act_1591471198924948</p>
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('tasks',this)">📋 Tasks</button>
@@ -405,72 +405,81 @@ function exportXLSX(){
   showToast();
 }
 
-// ═══ ROW MEDIA UPLOAD (localStorage, keyed by creative) ═══
-// Storage: { "ad-a-data": [{name,type,data,date},...], ... }
-const MEDIA_KEY='ultron_creative_media';
-function getAllMedia(){try{return JSON.parse(localStorage.getItem(MEDIA_KEY)||'{}');}catch{return{};}}
-function saveAllMedia(obj){try{localStorage.setItem(MEDIA_KEY,JSON.stringify(obj));}catch(e){alert('저장 용량 초과! 파일 크기를 줄여주세요.');}}
-function getCreativeMedia(creative){return getAllMedia()[creative]||[];}
-function saveCreativeMedia(creative,arr){const all=getAllMedia();all[creative]=arr;saveAllMedia(all);}
+// ═══ ROW MEDIA — Cloudflare R2 via Worker ═══
+const WORKER_URL='https://wakalab-media-worker.kimbang0105.workers.dev';
+const R2_PUBLIC='https://pub-6a59e68e19674137bc7fe6698cc2881a.r2.dev';
+// In-memory cache per creative
+const mediaCache={};
+
+async function fetchMedia(creative){
+  try{
+    const res=await fetch(WORKER_URL+'/list/'+creative);
+    const data=await res.json();
+    mediaCache[creative]=data.files||[];
+  }catch(e){console.error('R2 list error:',e);mediaCache[creative]=[];}
+  return mediaCache[creative];
+}
 
 function triggerRowUpload(creative,rowIdx){document.getElementById('rowinput-'+rowIdx).click();}
-function handleRowUpload(creative,rowIdx,input){
+
+async function handleRowUpload(creative,rowIdx,input){
   const files=Array.from(input.files);if(!files.length)return;
-  const media=getCreativeMedia(creative);
-  let loaded=0;
-  files.forEach(file=>{
-    if(file.size>5*1024*1024){alert(file.name+': 5MB 초과');loaded++;return;}
-    const reader=new FileReader();
-    reader.onload=e=>{
-      media.push({name:file.name,type:file.type,data:e.target.result,date:new Date().toISOString()});
-      loaded++;
-      if(loaded===files.length){saveCreativeMedia(creative,media);renderAllRowMedia();}
-    };
-    reader.readAsDataURL(file);
-  });
-  input.value='';
-}
-function deleteRowMedia(creative,mediaIdx){
-  const media=getCreativeMedia(creative);
-  media.splice(mediaIdx,1);
-  saveCreativeMedia(creative,media);
+  const btn=input.previousElementSibling;
+  btn.textContent='⏳';btn.disabled=true;
+  for(const file of files){
+    if(file.size>25*1024*1024){alert(file.name+': 25MB 초과');continue;}
+    try{
+      await fetch(WORKER_URL+'/upload/'+creative+'/'+encodeURIComponent(file.name),{
+        method:'PUT',body:file,headers:{'Content-Type':file.type}
+      });
+    }catch(e){alert('업로드 실패: '+e.message);}
+  }
+  input.value='';btn.textContent='📤';btn.disabled=false;
+  await fetchMedia(creative);
   renderAllRowMedia();
 }
+
+async function deleteRowMedia(creative,fileKey){
+  if(!confirm('삭제하시겠습니까?'))return;
+  try{await fetch(WORKER_URL+'/delete/'+fileKey,{method:'DELETE'});}catch(e){alert('삭제 실패');}
+  await fetchMedia(creative);
+  renderAllRowMedia();
+}
+
 function renderAllRowMedia(){
-  // Each row maps to a creative; show that creative's media on all its rows
   const rows=document.querySelectorAll('[id^=rowmedia-]');
   rows.forEach(el=>{
     const rowIdx=parseInt(el.id.replace('rowmedia-',''));
     const raw=ADS_RAW[rowIdx];if(!raw)return;
     const creative=raw.creative;
-    const media=getCreativeMedia(creative);
+    const media=mediaCache[creative]||[];
     el.innerHTML='';
-    media.forEach((m,mi)=>{
+    media.forEach(m=>{
       const thumb=document.createElement('div');
       thumb.className='row-media-thumb';
-      if(m.type&&m.type.startsWith('video')){
-        thumb.innerHTML='<video src="'+m.data+'" muted></video>';
-      } else {
-        thumb.innerHTML='<img src="'+m.data+'" alt="'+m.name+'">';
+      const isVideo=m.name.match(/\.(mp4|mov|webm|avi)$/i);
+      if(isVideo){
+        thumb.innerHTML='<video src="'+m.url+'" muted></video>';
+      }else{
+        thumb.innerHTML='<img src="'+m.url+'" alt="'+m.name+'">';
       }
-      thumb.onclick=()=>openLightbox(creative,mi);
+      thumb.onclick=()=>openLightbox(m.url,isVideo);
       const del=document.createElement('button');
       del.className='thumb-del';del.textContent='✕';
-      del.onclick=e=>{e.stopPropagation();deleteRowMedia(creative,mi);};
+      del.onclick=e=>{e.stopPropagation();deleteRowMedia(creative,m.key);};
       thumb.appendChild(del);
       el.appendChild(thumb);
     });
   });
 }
-function openLightbox(creative,idx){
-  const media=getCreativeMedia(creative);
-  const m=media[idx];if(!m)return;
+
+function openLightbox(url,isVideo){
   const lb=document.getElementById('lightbox');
   const content=document.getElementById('lb-content');
-  if(m.type&&m.type.startsWith('video')){
-    content.innerHTML='<video src="'+m.data+'" controls autoplay style="max-width:90vw;max-height:90vh;border-radius:8px"></video>';
-  } else {
-    content.innerHTML='<img src="'+m.data+'" style="max-width:90vw;max-height:90vh;border-radius:8px">';
+  if(isVideo){
+    content.innerHTML='<video src="'+url+'" controls autoplay style="max-width:90vw;max-height:90vh;border-radius:12px"></video>';
+  }else{
+    content.innerHTML='<img src="'+url+'" style="max-width:90vw;max-height:90vh;border-radius:12px">';
   }
   lb.classList.add('active');
 }
@@ -480,7 +489,11 @@ function closeLightbox(e){
     document.getElementById('lb-content').innerHTML='';
   }
 }
-renderAllRowMedia();
+// Init: load all creative media from R2
+(async()=>{
+  await Promise.all(CREATIVE_KEYS.map(k=>fetchMedia(k)));
+  renderAllRowMedia();
+})();
 </script>
 </body>
 </html>
