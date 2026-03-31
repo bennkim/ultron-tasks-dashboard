@@ -718,7 +718,7 @@ function closeLightbox(e){if(e.target.id==='lightbox'||e.target.classList.contai
 let LEADS=[];
 async function loadLeads(){
   try{
-    const res=await fetch('https://raw.githubusercontent.com/bennkim/ultron-tasks-dashboard/main/leads.json');
+    const res=await fetch('./leads.json');
     LEADS=await res.json();
     renderLeads();
     document.getElementById('leads-loading').style.display='none';
