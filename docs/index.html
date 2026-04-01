@@ -300,7 +300,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 4. 1. 오후 4:57:03</div>
+    <div>빌드: 2026. 4. 1. 오후 5:04:05</div>
     <div style="margin-top:4px" id="sidebar-progress">진행률 0% (0/0)</div>
     <div class="progress-mini"><div class="progress-mini-fill" id="sidebar-bar" style="width:0%"></div></div>
   </div>
@@ -634,14 +634,14 @@ function updateHomeStats(tasks){
   const sp=document.getElementById('sidebar-progress');if(sp)sp.textContent='진행률 '+pct+'% ('+done+'/'+total+')';
   const sb=document.getElementById('sidebar-bar');if(sb)sb.style.width=pct+'%';
   
-  // In Progress tab
-  const inProgressTasks=tasks.filter(t=>t.status==='IN_PROGRESS');
+  // In Progress tab (sorted by updated_at desc)
+  const inProgressTasks=tasks.filter(t=>t.status==='IN_PROGRESS').sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
   document.getElementById('home-ip-count').textContent=inProgressTasks.length;
   const ipHtml=inProgressTasks.length===0?'<p style="color:var(--muted);font-size:.85rem">없음</p>':inProgressTasks.map(t=>`<div class="blocker-item"><span class="badge badge-progress">🔄</span><span class="rank-id task-link" onclick="goToTask('${t.id}')">${t.id}</span><span class="task-link" onclick="goToTask('${t.id}')">${(t.title||t.description||'').substring(0,40)}${(t.title||t.description||'').length>40?'…':''}</span><span style="color:var(--muted);margin-left:auto">${t.owner||'—'}</span></div>`).join('');
   document.getElementById('home-tab-inprogress').innerHTML=ipHtml;
   
-  // Blockers tab
-  const blockers=tasks.filter(t=>t.status==='BLOCKED');
+  // Blockers tab (sorted by updated_at desc)
+  const blockers=tasks.filter(t=>t.status==='BLOCKED').sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
   document.getElementById('home-blocker-count').textContent=blockers.length;
   const blockersHtml=blockers.length===0?'<p style="color:var(--muted);font-size:.85rem">없음 🎉</p>':blockers.map(b=>`<div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id task-link" onclick="goToTask('${b.id}')">${b.id}</span><span class="task-link" onclick="goToTask('${b.id}')">${(b.title||b.description||'').substring(0,40)}${(b.title||b.description||'').length>40?'…':''}</span><span style="color:var(--muted);margin-left:auto">${b.owner||'—'}</span></div>`).join('');
   document.getElementById('home-tab-blockers').innerHTML=blockersHtml;
