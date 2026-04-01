@@ -20,14 +20,62 @@ try {
 // ═══════════════════════════════════════════
 // TASKS.MD PARSER
 // ═══════════════════════════════════════════
-// TASKS.md 파싱 제거 — D1 API에서 런타임 fetch로 대체
-const epics = []; // 빈 배열 (클라이언트 사이드에서 로드)
+const md = readFileSync('TASKS.md', 'utf-8');
+const lines = md.split('\n');
+const epics = [];
+let currentEpic = null, currentStory = null, inTable = false;
 
-// 통계 변수 초기화 (클라이언트 사이드에서 계산)
-const allTasks = [];
-const total = 0, done = 0, inProgress = 0, blocked = 0, todo = 0, pct = 0;
-const blockers = [];
-const iceRanking = [];
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  const epicMatch = line.match(/^### \[(E-\d+)\]\s+(.+?)(?:\s+(🔴|🟠|🟡|⚪)\s*(P\d))?$/);
+  if (epicMatch) {
+    currentEpic = { id: epicMatch[1], title: epicMatch[2].trim(), priorityEmoji: epicMatch[3]||'', priority: epicMatch[4]||'', meta: {}, stories: [] };
+    epics.push(currentEpic); currentStory = null; inTable = false;
+    for (let j = i+1; j < lines.length && lines[j].startsWith('- **'); j++) {
+      const m = lines[j].match(/^- \*\*(.+?):\*\*\s*(.+)/);
+      if (m) currentEpic.meta[m[1]] = m[2];
+    }
+    continue;
+  }
+  const storyMatch = line.match(/^\*\*\[(S-\d+)\]\s+(.+?)\*\*\s*(✅|🔄|🚨|📋|🔲|🔍)?\s*(DONE|IN_PROGRESS|BLOCKED|BACKLOG|TODO|REVIEW)?/);
+  if (storyMatch && currentEpic) {
+    currentStory = { id: storyMatch[1], title: storyMatch[2].trim(), statusEmoji: storyMatch[3]||'', status: storyMatch[4]||'', meta: {}, tasks: [] };
+    currentEpic.stories.push(currentStory); inTable = false;
+    continue;
+  }
+  if (line.match(/^\|\s*Task\s*\|/) && currentStory) { inTable = true; i++; continue; }
+  if (inTable && line.startsWith('|') && currentStory) {
+    const cols = line.split('|').map(c=>c.trim()).filter(Boolean);
+    if (cols.length >= 4) {
+      const iceRaw = cols[4]||'';
+      const m = iceRaw.match(/=\s*(\d+)/) || iceRaw.match(/(\d+)(?:\s*(🔴|🟠|🟡|⚪))/);
+      currentStory.tasks.push({ id:cols[0], statusEmoji:cols[1], status:parseStatus(cols[1]), assignee:cols[2], desc:cols[3], iceScore:m?parseInt(m[1]):0 });
+    }
+    continue;
+  }
+  if (inTable && !line.startsWith('|')) inTable = false;
+}
+
+function parseStatus(e) {
+  if(e.includes('✅'))return'DONE';if(e.includes('🔄'))return'IN_PROGRESS';if(e.includes('🚨'))return'BLOCKED';
+  if(e.includes('📋'))return'BACKLOG';if(e.includes('🔲'))return'TODO';if(e.includes('🔍'))return'REVIEW';return'UNKNOWN';
+}
+function iceClass(s){if(s>=700)return'ice-critical';if(s>=400)return'ice-high';if(s>=200)return'ice-medium';return'ice-low';}
+function statusClass(s){return{DONE:'done',IN_PROGRESS:'progress',BLOCKED:'blocked',TODO:'todo',BACKLOG:'backlog',REVIEW:'review'}[s]||'unknown';}
+
+const allTasks = epics.flatMap(e=>e.stories.flatMap(s=>s.tasks));
+const total=allTasks.length, done=allTasks.filter(t=>t.status==='DONE').length;
+const inProgress=allTasks.filter(t=>t.status==='IN_PROGRESS').length;
+const blocked=allTasks.filter(t=>t.status==='BLOCKED').length;
+const todo=allTasks.filter(t=>t.status==='TODO').length+allTasks.filter(t=>t.status==='BACKLOG').length;
+const pct=total>0?Math.round((done/total)*100):0;
+const blockers=allTasks.filter(t=>t.status==='BLOCKED');
+const iceRanking=allTasks.filter(t=>t.status!=='DONE'&&t.iceScore>0).sort((a,b)=>b.iceScore-a.iceScore).slice(0,10);
+
+function taskDate(id){const entries=taskHistory[id]||[];if(!entries.length)return'—';const latest=entries.reduce((m,e)=>e.date>m?e.date:m,'');const d=latest.slice(5);return d;}
+function renderTask(t){return`<tr class="task-row ${statusClass(t.status)}"><td class="task-id"><span class="id-link" data-id="${t.id}" onclick="openHistoryModal('${t.id}','${t.desc.replace(/'/g,"&#39;")}');event.stopPropagation()">${t.id}<span class="red-dot" data-dot="${t.id}" style="display:none"></span></span></td><td><span class="badge badge-${statusClass(t.status)}">${t.statusEmoji}</span></td><td class="task-assignee">${t.assignee}</td><td class="task-desc">${t.desc}</td><td class="task-date">${taskDate(t.id)}</td><td><span class="ice ${iceClass(t.iceScore)}">${t.iceScore>0?t.iceScore:'—'}</span></td></tr>`;}
+function renderStory(s){const d=s.tasks.filter(t=>t.status==='DONE').length,n=s.tasks.length,p=n>0?Math.round(d/n*100):0;return`<div class="story"><div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="story-id id-link" data-id="${s.id}" onclick="openHistoryModal('${s.id}','${s.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${s.id}<span class="red-dot" data-dot="${s.id}" style="display:none"></span></span><span class="story-title">${s.title}</span><span class="badge badge-${statusClass(s.status)}">${s.statusEmoji} ${s.status}</span><span class="story-progress">${d}/${n}</span><div class="mini-bar"><div class="mini-fill" style="width:${p}%"></div></div></div><div class="story-body"><table class="task-table"><thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>등록일</th><th>ICE</th></tr></thead><tbody>${s.tasks.map(renderTask).join('')}</tbody></table></div></div>`;}
+function renderEpic(e){const ts=e.stories.flatMap(s=>s.tasks),d=ts.filter(t=>t.status==='DONE').length,n=ts.length,p=n>0?Math.round(d/n*100):0;return`<div class="epic"><div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')"><span class="chevron">▼</span><span class="epic-id id-link" data-id="${e.id}" onclick="openHistoryModal('${e.id}','${e.title.replace(/'/g,"&#39;")}');event.stopPropagation()">${e.id}<span class="red-dot" data-dot="${e.id}" style="display:none"></span></span><span class="epic-title">${e.title}</span><span class="priority">${e.priorityEmoji} ${e.priority}</span><span class="epic-status">${e.meta['상태']||''}</span><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div><div class="epic-body">${e.stories.map(renderStory).join('')}</div></div>`;}
 
 // No more build-time ads data — fetched from D1 API at runtime
 
@@ -350,16 +398,16 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="summary">
   <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">전체</div></div>
   <div class="stat stat-done"><div class="stat-value">${done}</div><div class="stat-label">✅ 완료</div></div>
-  <div class="stat stat-progress"><div class="stat-value" id="home-progress">-</div><div class="stat-label">🔄 진행중</div></div>
-  <div class="stat stat-blocked"><div class="stat-value" id="home-blocked">-</div><div class="stat-label">🚨 블로커</div></div>
-  <div class="stat stat-todo"><div class="stat-value" id="home-todo">-</div><div class="stat-label">🔲 대기</div></div>
+  <div class="stat stat-progress"><div class="stat-value">${inProgress}</div><div class="stat-label">🔄 진행중</div></div>
+  <div class="stat stat-blocked"><div class="stat-value">${blocked}</div><div class="stat-label">🚨 블로커</div></div>
+  <div class="stat stat-todo"><div class="stat-value">${todo}</div><div class="stat-label">🔲 대기</div></div>
 </div>
 
-<div class="progress-section"><h2>전체 진행률</h2><div class="big-bar"><div class="big-fill" id="home-bar-fill" style="width:0%"></div></div><div class="big-pct" id="home-bar-text">-/- (-%)</div></div>
+<div class="progress-section"><h2>전체 진행률</h2><div class="big-bar"><div class="big-fill" style="width:${pct}%"></div></div><div class="big-pct">${done}/${total} (${pct}%)</div></div>
 
 <div class="home-grid">
-  <div class="panel"><h3>🚨 블로커 (<span id="home-blocker-count">0</span>건)</h3><div id="home-blockers" style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
-  <div class="panel"><h3>🏆 ICE 랭킹 Top 10</h3><div id="home-ice-ranking" style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
+  <div class="panel"><h3>🚨 블로커 (${blockers.length}건)</h3>${blockers.length===0?'<p style="color:var(--muted);font-size:.85rem">없음 🎉</p>':blockers.map(b=>`<div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">${b.id}</span><span>${b.desc}</span><span style="color:var(--muted);margin-left:auto">${b.assignee}</span></div>`).join('')}</div>
+  <div class="panel"><h3>🏆 ICE 랭킹 Top 10</h3>${iceRanking.map((t,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-id">${t.id}</span><span>${t.desc.substring(0,30)}${t.desc.length>30?'…':''}</span><span class="rank-score"><span class="ice ${iceClass(t.iceScore)}">${t.iceScore}</span></span></div>`).join('')}</div>
 </div>
 
 <div class="panel">
@@ -381,7 +429,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <button class="filter-btn" onclick="filterBy('CTO',this)">💻 CTO</button>
   <button class="filter-btn" onclick="filterBy('의장',this)">👑 의장</button>
 </div>
-<div id="tasks-container" style="padding:40px 0;text-align:center;color:var(--muted);font-size:.9rem">📦 로딩 중...</div>
+${epics.map(renderEpic).join('')}
 </div>
 
 <!-- 📢 AD MANAGER -->
@@ -536,141 +584,6 @@ function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
 }
-
-// ═══ TASK MANAGEMENT (D1 API) ═══
-const API='https://wakalab-media-worker.kimbang0105.workers.dev';
-let TASKS_DATA=null;
-
-function statusEmoji(status){const m={DONE:'✅',IN_PROGRESS:'🔄',BLOCKED:'🚨',TODO:'🔲',BACKLOG:'📋',REVIEW:'🔍'};return m[status]||'⚪';}
-function statusClass(status){const m={DONE:'done',IN_PROGRESS:'progress',BLOCKED:'blocked',TODO:'todo',BACKLOG:'backlog',REVIEW:'review'};return m[status]||'unknown';}
-function iceClass(score){if(score>=700)return'ice-critical';if(score>=400)return'ice-high';if(score>=200)return'ice-medium';return'ice-low';}
-function priorityEmoji(p){const m={P0:'🔴',P1:'🟠',P2:'🟡',P3:'⚪'};return m[p]||'';}
-
-function taskDate(taskId){
-  const entries=TASK_HISTORY[taskId]||[];
-  if(!entries.length)return'—';
-  const latest=entries.reduce((m,e)=>e.date>m?e.date:m,'');
-  return latest.slice(5);
-}
-
-function renderTask(t,storyTitle){
-  const desc=t.title||t.description||'';
-  return\`<tr class="task-row \${statusClass(t.status)}">
-    <td class="task-id"><span class="id-link" data-id="\${t.id}" onclick="openHistoryModal('\${t.id}','\${desc.replace(/'/g,"&#39;")}');event.stopPropagation()">\${t.id}<span class="red-dot" data-dot="\${t.id}" style="display:none"></span></span></td>
-    <td><span class="badge badge-\${statusClass(t.status)}">\${statusEmoji(t.status)}</span></td>
-    <td class="task-assignee">\${t.owner||'—'}</td>
-    <td class="task-desc">\${desc}</td>
-    <td class="task-date">\${taskDate(t.id)}</td>
-    <td><span class="ice \${iceClass(t.ice_score)}">\${t.ice_score>0?t.ice_score:'—'}</span></td>
-  </tr>\`;
-}
-
-function renderStory(s){
-  const doneTasks=s.tasks.filter(t=>t.status==='DONE').length;
-  const totalTasks=s.tasks.length;
-  const pct=totalTasks>0?Math.round((doneTasks/totalTasks)*100):0;
-  return\`<div class="story">
-    <div class="story-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="story-id id-link" data-id="\${s.id}" onclick="openHistoryModal('\${s.id}','\${s.title.replace(/'/g,"&#39;")}');event.stopPropagation()">\${s.id}<span class="red-dot" data-dot="\${s.id}" style="display:none"></span></span>
-      <span class="story-title">\${s.title}</span>
-      <span class="badge badge-\${statusClass(s.status)}">\${statusEmoji(s.status)} \${s.status}</span>
-      <span class="story-progress">\${doneTasks}/\${totalTasks}</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:\${pct}%"></div></div>
-    </div>
-    <div class="story-body">
-      <table class="task-table">
-        <thead><tr><th>Task</th><th>상태</th><th>담당</th><th>설명</th><th>등록일</th><th>ICE</th></tr></thead>
-        <tbody>\${s.tasks.map(t=>renderTask(t,s.title)).join('')}</tbody>
-      </table>
-    </div>
-  </div>\`;
-}
-
-function renderEpic(e){
-  const allTasks=e.stories.flatMap(s=>s.tasks);
-  const doneTasks=allTasks.filter(t=>t.status==='DONE').length;
-  const totalTasks=allTasks.length;
-  const pct=totalTasks>0?Math.round((doneTasks/totalTasks)*100):0;
-  const statusText=e.status||'';
-  return\`<div class="epic">
-    <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
-      <span class="chevron">▼</span>
-      <span class="epic-id id-link" data-id="\${e.id}" onclick="openHistoryModal('\${e.id}','\${e.title.replace(/'/g,"&#39;")}');event.stopPropagation()">\${e.id}<span class="red-dot" data-dot="\${e.id}" style="display:none"></span></span>
-      <span class="epic-title">\${e.title}</span>
-      <span class="priority">\${priorityEmoji(e.priority)} \${e.priority||''}</span>
-      <span class="epic-status">\${statusText}</span>
-      <div class="progress-bar"><div class="progress-fill" style="width:\${pct}%"></div></div>
-      <span class="progress-text">\${pct}%</span>
-    </div>
-    <div class="epic-body">\${e.stories.map(renderStory).join('')}</div>
-  </div>\`;
-}
-
-async function loadTasks(){
-  try{
-    const[epicsRes,storiesRes,tasksRes]=await Promise.all([
-      fetch(API+'/api/epics'),
-      fetch(API+'/api/stories'),
-      fetch(API+'/api/tasks')
-    ]);
-    const epicsData=await epicsRes.json();
-    const storiesData=await storiesRes.json();
-    const tasksData=await tasksRes.json();
-    
-    const epics=epicsData.epics||[];
-    const stories=storiesData.stories||[];
-    const tasks=tasksData.tasks||[];
-    
-    // Build hierarchy
-    epics.forEach(e=>{e.stories=stories.filter(s=>s.epic_id===e.id);});
-    stories.forEach(s=>{s.tasks=tasks.filter(t=>t.story_id===s.id);});
-    
-    TASKS_DATA={epics,stories,tasks};
-    
-    // Render Tasks tab
-    const container=document.getElementById('tasks-container');
-    if(epics.length===0){container.innerHTML='<p style="text-align:center;color:var(--muted);padding:40px 0">태스크가 없습니다.</p>';
-    }else{container.innerHTML=epics.map(renderEpic).join('');}
-    
-    // Update Home stats
-    updateHomeStats(tasks);
-    updateRedDots();
-    
-  }catch(e){
-    console.error('Failed to load tasks:',e);
-    document.getElementById('tasks-container').innerHTML='<p style="text-align:center;color:var(--red);padding:40px 0">❌ 로딩 실패: '+e.message+'</p>';
-  }
-}
-
-function updateHomeStats(tasks){
-  const done=tasks.filter(t=>t.status==='DONE').length;
-  const inProgress=tasks.filter(t=>t.status==='IN_PROGRESS').length;
-  const blocked=tasks.filter(t=>t.status==='BLOCKED').length;
-  const todo=tasks.filter(t=>t.status==='TODO'||t.status==='BACKLOG').length;
-  const total=tasks.length;
-  const pct=total>0?Math.round((done/total)*100):0;
-  
-  document.getElementById('home-progress').textContent=inProgress;
-  document.getElementById('home-blocked').textContent=blocked;
-  document.getElementById('home-todo').textContent=todo;
-  document.getElementById('home-bar-fill').style.width=pct+'%';
-  document.getElementById('home-bar-text').textContent=done+'/'+total+' ('+pct+'%)';
-  
-  // Blockers
-  const blockers=tasks.filter(t=>t.status==='BLOCKED');
-  document.getElementById('home-blocker-count').textContent=blockers.length;
-  const blockersHtml=blockers.length===0?'<p style="color:var(--muted);font-size:.85rem">없음 🎉</p>':blockers.map(b=>\`<div class="blocker-item"><span class="badge badge-blocked">🚨</span><span class="rank-id">\${b.id}</span><span>\${b.title||b.description}</span><span style="color:var(--muted);margin-left:auto">\${b.owner||'—'}</span></div>\`).join('');
-  document.getElementById('home-blockers').innerHTML=blockersHtml;
-  
-  // ICE Ranking
-  const iceRanking=tasks.filter(t=>t.status!=='DONE'&&t.ice_score>0).sort((a,b)=>b.ice_score-a.ice_score).slice(0,10);
-  const iceHtml=iceRanking.map((t,i)=>\`<div class="rank-item"><span class="rank-num">\${i+1}</span><span class="rank-id">\${t.id}</span><span>\${(t.title||t.description||'').substring(0,30)}\${(t.title||t.description||'').length>30?'…':''}</span><span class="rank-score"><span class="ice \${iceClass(t.ice_score)}">\${t.ice_score}</span></span></div>\`).join('');
-  document.getElementById('home-ice-ranking').innerHTML=iceHtml;
-}
-
-// Load tasks on page load
-loadTasks();
 
 // ═══ HISTORY MODAL ═══
 const TASK_HISTORY=${JSON.stringify(taskHistory)};
