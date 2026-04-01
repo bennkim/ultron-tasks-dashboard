@@ -297,6 +297,21 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .cm-media-item{border-radius:10px;overflow:hidden;border:1px solid var(--border);cursor:pointer;aspect-ratio:1;transition:transform .15s}.cm-media-item:hover{transform:scale(1.03)}
 .cm-media-item img,.cm-media-item video{width:100%;height:100%;object-fit:contain;background:#f8f9fa}
 .cm-empty{color:var(--muted);font-size:.8rem;font-style:italic}
+.content-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.content-field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.content-field select,.content-field input{width:100%;padding:9px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;outline:none;transition:border-color .2s}
+.content-field select:focus,.content-field input:focus{border-color:var(--blue)}
+.ct-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;transition:all .15s}
+.ct-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(59,130,246,.08)}
+.ct-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ct-card-appeal{font-size:.7rem;padding:2px 8px;border-radius:8px;font-weight:600}
+.ct-card-headline{font-size:.95rem;font-weight:700;color:var(--blue-dark);margin-bottom:6px}
+.ct-card-body{font-size:.85rem;line-height:1.6;color:var(--text);margin-bottom:8px}
+.ct-card-cta{font-size:.8rem;font-weight:600;color:var(--blue)}
+.ct-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.ct-card-tag{font-size:.7rem;color:var(--blue);background:var(--blue-light);padding:2px 8px;border-radius:6px}
+.ct-tip{background:var(--blue-light);border-radius:10px;padding:12px;font-size:.82rem;color:var(--blue-dark);line-height:1.5}
+.ct-hist-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.ct-hist-meta{color:var(--muted);font-size:.72rem;margin-bottom:4px}
 
 /* Leads */
 .lead-email{color:var(--blue);font-weight:500;font-size:.8rem}
@@ -360,6 +375,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" data-nav="tasks" onclick="navigate('tasks',this)"><span class="nav-icon">📋</span>Tasks</div>
     <div class="nav-item" onclick="navigate('ads',this)"><span class="nav-icon">📢</span>Ad Manager</div>
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
+    <div class="nav-item" onclick="navigate('contents',this)"><span class="nav-icon">✍️</span>Contents</div>
   </div>
   <div class="sidebar-footer">
     <div>빌드: ${now}</div>
@@ -543,6 +559,77 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </table></div></div>
 </div>
 </div><!-- /section-leads -->
+
+<!-- ═══ CONTENTS SECTION ═══ -->
+<div id="section-contents" class="main-section">
+<h1>✍️ 콘텐츠 생성</h1>
+
+<!-- Input Panel -->
+<div class="panel" style="margin-bottom:20px">
+  <h3>📝 콘텐츠 생성 요청</h3>
+  <div class="content-form">
+    <div class="content-form-grid">
+      <div class="content-field">
+        <label>채널</label>
+        <select id="ct-channel">
+          <option value="instagram">📸 Instagram</option>
+          <option value="facebook">📘 Facebook</option>
+          <option value="blog">📝 Blog/SEO</option>
+          <option value="email">📧 Email</option>
+          <option value="landing">🖥️ Landing Page</option>
+        </select>
+      </div>
+      <div class="content-field">
+        <label>목표</label>
+        <select id="ct-goal">
+          <option value="awareness">인지도 확대</option>
+          <option value="consideration">고려 유도</option>
+          <option value="conversion">전환</option>
+          <option value="retention">리텐션</option>
+        </select>
+      </div>
+      <div class="content-field">
+        <label>톤</label>
+        <select id="ct-tone">
+          <option value="friendly">😊 친근한</option>
+          <option value="professional">💼 전문적</option>
+          <option value="urgent">⚡ 긴급한</option>
+          <option value="playful">🎉 유쾌한</option>
+        </select>
+      </div>
+      <div class="content-field">
+        <label>변형 수</label>
+        <select id="ct-count">
+          <option value="3">3개</option>
+          <option value="5">5개</option>
+        </select>
+      </div>
+    </div>
+    <div class="content-field" style="margin-top:10px">
+      <label>테마 / 키워드</label>
+      <input type="text" id="ct-theme" placeholder="예: 봄맞이 할인 이벤트, 신규 기능 출시..." style="width:100%;padding:9px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;outline:none">
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+      <button class="export-btn" style="background:var(--blue);color:#fff" onclick="generateContent()">🚀 카피 생성</button>
+      <button class="export-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border)" onclick="generateImagePrompt()">🎨 이미지 프롬프트</button>
+      <span id="ct-status" style="font-size:.8rem;color:var(--muted)"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Generated Content -->
+<div id="ct-result" class="panel" style="display:none">
+  <h3>✨ 생성 결과</h3>
+  <div id="ct-variations"></div>
+  <div id="ct-tips" style="margin-top:14px"></div>
+</div>
+
+<!-- Content History -->
+<div class="panel">
+  <h3>📚 생성 이력</h3>
+  <div id="ct-history" style="color:var(--muted);font-size:.85rem">로딩 중...</div>
+</div>
+</div><!-- /section-contents -->
 
 </div><!-- /main -->
 </div><!-- /app -->
@@ -1204,8 +1291,74 @@ async function loadSystemStatus(){
   }
 }
 
+// ═══ CONTENT GENERATION ═══
+const appealColors={혜택:'background:rgba(16,185,129,.1);color:var(--green)',감성:'background:rgba(168,85,247,.1);color:#a855f7',긴급:'background:rgba(239,68,68,.1);color:var(--red)',사회적증거:'background:rgba(59,130,246,.1);color:var(--blue)',비교:'background:rgba(245,158,11,.1);color:var(--yellow)'};
+
+async function generateContent(){
+  const channel=document.getElementById('ct-channel').value;
+  const goal=document.getElementById('ct-goal').value;
+  const tone=document.getElementById('ct-tone').value;
+  const count=document.getElementById('ct-count').value;
+  const theme=document.getElementById('ct-theme').value;
+  if(!theme){document.getElementById('ct-status').textContent='⚠️ 테마를 입력해주세요';return;}
+  document.getElementById('ct-status').textContent='🔄 생성 중...';
+  try{
+    const res=await fetch(API+'/api/content/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel,goal,tone,count:parseInt(count),theme,max_chars:150,include_cta:true,include_emoji:true})});
+    const data=await res.json();
+    if(data.error){document.getElementById('ct-status').textContent='❌ '+data.error;return;}
+    document.getElementById('ct-status').textContent='✅ 생성 완료';
+    renderContentResult(data);
+    loadContentHistory();
+  }catch(e){document.getElementById('ct-status').textContent='❌ 오류: '+e.message;}
+}
+
+async function generateImagePrompt(){
+  const theme=document.getElementById('ct-theme').value;
+  if(!theme){document.getElementById('ct-status').textContent='⚠️ 테마를 입력해주세요';return;}
+  document.getElementById('ct-status').textContent='🔄 이미지 프롬프트 생성 중...';
+  try{
+    const res=await fetch(API+'/api/content/image-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({headline:theme,channel:document.getElementById('ct-channel').value})});
+    const data=await res.json();
+    if(data.error){document.getElementById('ct-status').textContent='❌ '+data.error;return;}
+    document.getElementById('ct-status').textContent='✅ 프롬프트 생성 완료';
+    const panel=document.getElementById('ct-result');
+    panel.style.display='block';
+    document.getElementById('ct-variations').innerHTML='<div class="ct-card"><div class="ct-card-headline">📐 1:1 (정사각형)</div><div class="ct-card-body">'+((data.square||'—'))+'</div></div><div class="ct-card"><div class="ct-card-headline">📱 4:5 (세로형)</div><div class="ct-card-body">'+(data.vertical||'—')+'</div></div><div class="ct-card"><div class="ct-card-headline">🚫 Negative</div><div class="ct-card-body">'+(data.negative||'—')+'</div></div>';
+    document.getElementById('ct-tips').innerHTML=data.style_notes?'<div class="ct-tip">💡 '+data.style_notes+'</div>':'';
+  }catch(e){document.getElementById('ct-status').textContent='❌ '+e.message;}
+}
+
+function renderContentResult(data){
+  const panel=document.getElementById('ct-result');
+  panel.style.display='block';
+  const vars=data.variations||[];
+  document.getElementById('ct-variations').innerHTML=vars.map(v=>{
+    const ac=appealColors[v.appeal]||'background:var(--bg);color:var(--text)';
+    const tags=(v.hashtags||[]).map(t=>'<span class="ct-card-tag">'+t+'</span>').join('');
+    return '<div class="ct-card"><div class="ct-card-head"><span class="ct-card-appeal" style="'+ac+'">'+v.appeal+'</span><span class="ice ice-medium">'+v.score+'/10</span></div><div class="ct-card-headline">'+v.headline+'</div><div class="ct-card-body">'+v.body+'</div><div class="ct-card-cta">→ '+v.cta+'</div><div class="ct-card-tags">'+tags+'</div></div>';
+  }).join('');
+  const tips=[];
+  if(data.ab_tip)tips.push('🔬 A/B 테스트: '+data.ab_tip);
+  if(data.channel_tip)tips.push('📢 채널 팁: '+data.channel_tip);
+  document.getElementById('ct-tips').innerHTML=tips.map(t=>'<div class="ct-tip" style="margin-bottom:8px">'+t+'</div>').join('');
+}
+
+async function loadContentHistory(){
+  try{
+    const res=await fetch(API+'/api/content/history');
+    const data=await res.json();
+    const el=document.getElementById('ct-history');
+    if(!data.generations||data.generations.length===0){el.innerHTML='<p style="color:var(--muted)">아직 생성 이력이 없습니다.</p>';return;}
+    el.innerHTML=data.generations.map(g=>{
+      const v=g.variations_json;
+      const count=v.variations?v.variations.length:0;
+      return '<div class="ct-hist-item"><div class="ct-hist-meta">'+g.created_at+' · '+g.channel+' · '+g.goal+'</div><div><strong>'+g.theme+'</strong> — '+count+'개 변형 ('+g.tone+')</div></div>';
+    }).join('');
+  }catch(e){document.getElementById('ct-history').innerHTML='<p style="color:var(--red)">이력 로드 실패</p>';}
+}
+
 // ── Init ──
-loadTasks();loadAdData();loadLeads();loadSystemStatus();
+loadTasks();loadAdData();loadLeads();loadContentHistory();loadSystemStatus();
 <\/script>
 </body>
 </html>`;
