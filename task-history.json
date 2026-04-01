@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-03-31T09:00:00+09:00",
+  "updated": "2026-04-01T12:00:00+09:00",
   "history": {
     "E-001": [
       {
@@ -84,6 +84,12 @@
         "author": "CEO",
         "type": "blocked",
         "note": "Cloudflare Pages 배포 — 외부 담당자에게 요청 필요, 의장 권한 밖"
+      },
+      {
+        "date": "2026-03-31 11:30",
+        "author": "CTO",
+        "type": "done",
+        "note": "Cloudflare Pages 배포 완료 (wakain.pages.dev)"
       }
     ],
     "T-006": [
@@ -122,6 +128,98 @@
         "author": "CEO",
         "type": "created",
         "note": "대시보드 고도화 + 광고 관리 시스템 에픽 생성"
+      }
+    ],
+    "S-003": [
+      {
+        "date": "2026-03-31 11:30",
+        "author": "CTO",
+        "type": "done",
+        "note": "Meta Pixel 설치 완료 (T-003 배포)"
+      }
+    ],
+    "S-017": [
+      {
+        "date": "2026-03-31 14:22",
+        "author": "CEO",
+        "type": "created",
+        "note": "히스토리 모달 기능 시작"
+      },
+      {
+        "date": "2026-03-31 16:48",
+        "author": "CEO",
+        "type": "done",
+        "note": "히스토리 모달 완료 (task-history.json + 모달 UI)"
+      }
+    ],
+    "T-048": [
+      {
+        "date": "2026-03-31 14:30",
+        "author": "CEO",
+        "type": "done",
+        "note": "task-history.json 데이터 구조 설계 + 초기 데이터 작성"
+      }
+    ],
+    "T-049": [
+      {
+        "date": "2026-03-31 16:48",
+        "author": "CEO",
+        "type": "done",
+        "note": "모달 HTML/CSS/JS 구현 + 빌드 완료"
+      }
+    ],
+    "S-019": [
+      {
+        "date": "2026-03-31 17:15",
+        "author": "CEO",
+        "type": "created",
+        "note": "AGENTS.md 도입 + 운영 규칙 시작"
+      },
+      {
+        "date": "2026-03-31 18:05",
+        "author": "CEO",
+        "type": "done",
+        "note": "WakaLab 레포 AGENTS.md 5개 생성 + CEO 운영 규칙 업데이트"
+      }
+    ],
+    "T-054": [
+      {
+        "date": "2026-03-31 17:30",
+        "author": "CEO",
+        "type": "done",
+        "note": "WakaLab 레포 AGENTS.md 5개 생성 (루트/frontend/backend/analyzer/core)"
+      }
+    ],
+    "T-055": [
+      {
+        "date": "2026-03-31 18:05",
+        "author": "CEO",
+        "type": "done",
+        "note": "CEO 운영 규칙 업데이트 (코딩 금지, Planner 필수, 태스크 완료 처리, 의장 승인 프로토콜)"
+      }
+    ],
+    "E-005": [
+      {
+        "date": "2026-03-31 19:12",
+        "author": "CEO",
+        "type": "created",
+        "note": "콜드메일 세일즈 파이프라인 에픽 생성"
+      }
+    ],
+    "T-037": [
+      {
+        "date": "2026-03-31 19:30",
+        "author": "CTO",
+        "type": "done",
+        "note": "크롤링 대상 소스 정의 — Clutch.co 한국 디지털 마케팅 에이전시 (103개 리스트)"
+      }
+    ],
+    "T-038": [
+      {
+        "date": "2026-03-31 21:47",
+        "author": "CTO",
+        "type": "done",
+        "note": "Clutch.co 크롤러 구현 — 104건 수집 (id, name, slug, profile, location, size)"
       }
     ]
   }
