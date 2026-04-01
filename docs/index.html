@@ -300,9 +300,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 4. 1. 오후 4:53:17</div>
-    <div style="margin-top:4px">진행률 0% (0/0)</div>
-    <div class="progress-mini"><div class="progress-mini-fill" style="width:0%"></div></div>
+    <div>빌드: 2026. 4. 1. 오후 4:57:03</div>
+    <div style="margin-top:4px" id="sidebar-progress">진행률 0% (0/0)</div>
+    <div class="progress-mini"><div class="progress-mini-fill" id="sidebar-bar" style="width:0%"></div></div>
   </div>
 </nav>
 
@@ -314,8 +314,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <h2 style="font-size:1.2rem;font-weight:700;color:var(--blue-dark);margin-bottom:20px">📊 대시보드 홈</h2>
 
 <div class="summary">
-  <div class="stat"><div class="stat-value">0</div><div class="stat-label">전체</div></div>
-  <div class="stat stat-done"><div class="stat-value">0</div><div class="stat-label">✅ 완료</div></div>
+  <div class="stat"><div class="stat-value" id="home-total">0</div><div class="stat-label">전체</div></div>
+  <div class="stat stat-done"><div class="stat-value" id="home-done">0</div><div class="stat-label">✅ 완료</div></div>
   <div class="stat stat-progress"><div class="stat-value" id="home-progress">-</div><div class="stat-label">🔄 진행중</div></div>
   <div class="stat stat-blocked"><div class="stat-value" id="home-blocked">-</div><div class="stat-label">🚨 블로커</div></div>
   <div class="stat stat-todo"><div class="stat-value" id="home-todo">-</div><div class="stat-label">🔲 대기</div></div>
@@ -624,11 +624,15 @@ function updateHomeStats(tasks){
   const total=tasks.length;
   const pct=total>0?Math.round((done/total)*100):0;
   
+  document.getElementById('home-total').textContent=total;
+  document.getElementById('home-done').textContent=done;
   document.getElementById('home-progress').textContent=inProgress;
   document.getElementById('home-blocked').textContent=blocked;
   document.getElementById('home-todo').textContent=todo;
   document.getElementById('home-bar-fill').style.width=pct+'%';
   document.getElementById('home-bar-text').textContent=done+'/'+total+' ('+pct+'%)';
+  const sp=document.getElementById('sidebar-progress');if(sp)sp.textContent='진행률 '+pct+'% ('+done+'/'+total+')';
+  const sb=document.getElementById('sidebar-bar');if(sb)sb.style.width=pct+'%';
   
   // In Progress tab
   const inProgressTasks=tasks.filter(t=>t.status==='IN_PROGRESS');
