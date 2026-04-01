@@ -856,7 +856,7 @@ function goToTask(taskId){
 // loadTasks() called in Init section at bottom
 
 // ═══ HISTORY MODAL ═══
-let TASK_HISTORY={};
+var TASK_HISTORY={};
 const typeEmoji={created:'🆕',started:'🚀',progress:'🔄',done:'✅',completed:'✅',blocked:'🚨',reopened:'🔓',commented:'💬',assigned:'👤'};
 const typeTlClass={created:'tl-created',started:'tl-progress',progress:'tl-progress',done:'tl-done',completed:'tl-done',blocked:'tl-blocked',reopened:'tl-created',commented:'tl-progress',assigned:'tl-created'};
 // ═══ RED DOT NOTIFICATIONS ═══
@@ -1343,13 +1343,21 @@ function renderContentResult(data){
   document.getElementById('ct-variations').innerHTML=vars.map(v=>{
     const ac=appealColors[v.appeal]||'background:var(--bg);color:var(--text)';
     const tags=(v.hashtags||[]).map(t=>'<span class="ct-card-tag">'+t+'</span>').join('');
-    return '<div class="ct-card"><div class="ct-card-head"><span class="ct-card-appeal" style="'+ac+'">'+v.appeal+'</span><span class="ice ice-medium">'+v.score+'/10</span></div><div class="ct-card-headline">'+v.headline+'</div><div class="ct-card-body">'+v.body+'</div><div class="ct-card-cta">→ '+v.cta+'</div><div class="ct-card-tags">'+tags+'</div><div style="margin-top:8px;display:flex;gap:6px"><button class="export-btn" style="padding:5px 12px;font-size:.75rem;background:var(--blue);color:#fff" onclick="publishContent('+v.id+',\''+encodeURIComponent(v.headline)+'\')">📢 게재 + UTM</button><button class="export-btn" style="padding:5px 12px;font-size:.75rem;background:var(--bg);color:var(--text);border:1px solid var(--border)" onclick="copyContent(this.closest(\'.ct-card\'))">📋 복사</button></div></div>';
+    return '<div class="ct-card" data-vid="'+v.id+'" data-headline="'+encodeURIComponent(v.headline)+'"><div class="ct-card-head"><span class="ct-card-appeal" style="'+ac+'">'+v.appeal+'</span><span class="ice ice-medium">'+v.score+'/10</span></div><div class="ct-card-headline">'+v.headline+'</div><div class="ct-card-body">'+v.body+'</div><div class="ct-card-cta">&rarr; '+v.cta+'</div><div class="ct-card-tags">'+tags+'</div><div style="margin-top:8px;display:flex;gap:6px"><button class="export-btn ct-publish-btn" style="padding:5px 12px;font-size:.75rem;background:var(--blue);color:#fff">📢 게재 + UTM</button><button class="export-btn ct-copy-btn" style="padding:5px 12px;font-size:.75rem;background:var(--bg);color:var(--text);border:1px solid var(--border)">📋 복사</button></div></div>';
   }).join('');
   const tips=[];
   if(data.ab_tip)tips.push('🔬 A/B 테스트: '+data.ab_tip);
   if(data.channel_tip)tips.push('📢 채널 팁: '+data.channel_tip);
   document.getElementById('ct-tips').innerHTML=tips.map(t=>'<div class="ct-tip" style="margin-bottom:8px">'+t+'</div>').join('');
 }
+
+// Event delegation for content cards
+document.addEventListener('click',function(e){
+  const pubBtn=e.target.closest('.ct-publish-btn');
+  if(pubBtn){const card=pubBtn.closest('.ct-card');if(card)publishContent(card.dataset.vid,card.dataset.headline);return;}
+  const copyBtn=e.target.closest('.ct-copy-btn');
+  if(copyBtn){const card=copyBtn.closest('.ct-card');if(card)copyContent(card);return;}
+});
 
 function publishContent(varId,headline){
   const channel=document.getElementById('ct-channel').value;
