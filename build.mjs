@@ -648,14 +648,17 @@ function renderEpic(e){
 
 async function loadTasks(){
   try{
-    const[epicsRes,storiesRes,tasksRes]=await Promise.all([
+    const[epicsRes,storiesRes,tasksRes,histRes]=await Promise.all([
       fetch(API+'/api/epics'),
       fetch(API+'/api/stories'),
-      fetch(API+'/api/tasks')
+      fetch(API+'/api/tasks'),
+      fetch(API+'/api/history')
     ]);
     const epicsData=await epicsRes.json();
     const storiesData=await storiesRes.json();
     const tasksData=await tasksRes.json();
+    const histData=await histRes.json();
+    TASK_HISTORY=histData.history||{};
     
     const epics=epicsData.epics||[];
     const stories=storiesData.stories||[];
@@ -745,7 +748,7 @@ function goToTask(taskId){
 // loadTasks() called in Init section at bottom
 
 // ═══ HISTORY MODAL ═══
-const TASK_HISTORY=${JSON.stringify(taskHistory)};
+let TASK_HISTORY={};
 const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
 const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
 // ═══ RED DOT NOTIFICATIONS ═══
@@ -772,15 +775,20 @@ function updateRedDots(){
 updateRedDots();
 function markItemRead(id){const m=getReadMap();m[id]=new Date().toISOString().slice(0,10);saveReadMap(m);updateRedDots();}
 
-function openHistoryModal(id,title){
+async function openHistoryModal(id,title){
   markItemRead(id);
   document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
-  const entries=TASK_HISTORY[id]||[];
   const body=document.getElementById('historyBody');
-  if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
-  }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
+  body.innerHTML='<p style="color:var(--muted);font-size:.85rem">로딩 중...</p>';
   document.getElementById('historyOverlay').classList.add('active');
   document.body.style.overflow='hidden';
+  try{
+    const res=await fetch(API+'/api/tasks/'+id+'/history');
+    const data=await res.json();
+    const entries=(data.history||[]).map(e=>({date:e.created_at||e.date,author:e.author,type:e.action||e.type,note:e.note}));
+    if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
+    }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
+  }catch(err){body.innerHTML='<p style="color:var(--red);font-size:.85rem">히스토리 로드 실패</p>';}
 }
 function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');document.body.style.overflow='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal();closeCreativeModal();}});

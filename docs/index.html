@@ -315,7 +315,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 4. 1. 오후 6:36:43</div>
+    <div>빌드: 2026. 4. 1. 오후 6:50:29</div>
     <div style="margin-top:4px" id="sidebar-progress">진행률 0% (0/0)</div>
     <div class="progress-mini"><div class="progress-mini-fill" id="sidebar-bar" style="width:0%"></div></div>
   </div>
@@ -608,14 +608,17 @@ function renderEpic(e){
 
 async function loadTasks(){
   try{
-    const[epicsRes,storiesRes,tasksRes]=await Promise.all([
+    const[epicsRes,storiesRes,tasksRes,histRes]=await Promise.all([
       fetch(API+'/api/epics'),
       fetch(API+'/api/stories'),
-      fetch(API+'/api/tasks')
+      fetch(API+'/api/tasks'),
+      fetch(API+'/api/history')
     ]);
     const epicsData=await epicsRes.json();
     const storiesData=await storiesRes.json();
     const tasksData=await tasksRes.json();
+    const histData=await histRes.json();
+    TASK_HISTORY=histData.history||{};
     
     const epics=epicsData.epics||[];
     const stories=storiesData.stories||[];
@@ -705,7 +708,7 @@ function goToTask(taskId){
 // loadTasks() called in Init section at bottom
 
 // ═══ HISTORY MODAL ═══
-const TASK_HISTORY={"E-001":[{"date":"2026-03-25 09:38","author":"CEO","type":"created","note":"WakaLab 메타 광고 런칭 에픽 생성"},{"date":"2026-03-27 17:26","author":"CMO","type":"progress","note":"ABCD 4종 소재 완성, 캠페인 구조 확정"},{"date":"2026-03-28 16:53","author":"CTO","type":"progress","note":"Pixel base code 삽입 완료, develop 푸시"},{"date":"2026-03-28 17:41","author":"CEO","type":"blocked","note":"Cloudflare Pages 배포 외부 담당자 권한 필요, Meta 앱 라이브 전환 의장 수동 작업 필요"}],"S-001":[{"date":"2026-03-25 14:13","author":"CMO","type":"created","note":"광고 소재 제작 시작"},{"date":"2026-03-27 15:12","author":"CMO","type":"done","note":"ABCD 4종 이미지 + 카피 완성"}],"S-003":[{"date":"2026-03-31 11:30","author":"CTO","type":"done","note":"Meta Pixel 설치 완료 (T-003 배포)"}],"T-001":[{"date":"2026-03-28 09:43","author":"CTO","type":"done","note":"Meta Pixel base code 프론트엔드 삽입 완료"}],"T-002":[{"date":"2026-03-28 14:47","author":"CTO","type":"done","note":"develop 브랜치 푸시 완료"}],"T-003":[{"date":"2026-03-28 16:15","author":"CEO","type":"blocked","note":"Cloudflare Pages 배포 — 외부 담당자에게 요청 필요, 의장 권한 밖"},{"date":"2026-03-31 11:30","author":"CTO","type":"done","note":"Cloudflare Pages 배포 완료 (wakain.pages.dev)"}],"T-006":[{"date":"2026-03-28 13:00","author":"CEO","type":"blocked","note":"developers.facebook.com에서 개발→라이브 전환 필요 — 의장 수동 작업"}],"E-002":[{"date":"2026-03-26 09:51","author":"CEO","type":"created","note":"Ultron 시스템 운영 에픽 생성"},{"date":"2026-03-27 17:39","author":"CEO","type":"done","note":"봇 인프라 + 커뮤니케이션 전체 완료 (T-014~T-021)"}],"E-003":[{"date":"2026-03-28 09:07","author":"CEO","type":"created","note":"Planner-Evaluator 아키텍처 에픽 생성"}],"E-004":[{"date":"2026-03-28 11:14","author":"CEO","type":"created","note":"대시보드 고도화 + 광고 관리 시스템 에픽 생성"}],"S-017":[{"date":"2026-03-31 14:22","author":"CEO","type":"created","note":"히스토리 모달 기능 시작"},{"date":"2026-03-31 16:48","author":"CEO","type":"done","note":"히스토리 모달 완료 (task-history.json + 모달 UI)"}],"T-048":[{"date":"2026-03-31 14:30","author":"CEO","type":"done","note":"task-history.json 데이터 구조 설계 + 초기 데이터 작성"}],"T-049":[{"date":"2026-03-31 16:48","author":"CEO","type":"done","note":"모달 HTML/CSS/JS 구현 + 빌드 완료"}],"S-019":[{"date":"2026-03-31 17:15","author":"CEO","type":"created","note":"AGENTS.md 도입 + 운영 규칙 시작"},{"date":"2026-03-31 18:05","author":"CEO","type":"done","note":"WakaLab 레포 AGENTS.md 5개 생성 + CEO 운영 규칙 업데이트"}],"T-054":[{"date":"2026-03-31 17:30","author":"CEO","type":"done","note":"WakaLab 레포 AGENTS.md 5개 생성 (루트/frontend/backend/analyzer/core)"}],"T-055":[{"date":"2026-03-31 18:05","author":"CEO","type":"done","note":"CEO 운영 규칙 업데이트 (코딩 금지, Planner 필수, 태스크 완료 처리, 의장 승인 프로토콜)"}],"E-005":[{"date":"2026-03-31 19:12","author":"CEO","type":"created","note":"콜드메일 세일즈 파이프라인 에픽 생성"}],"T-037":[{"date":"2026-03-31 19:30","author":"CTO","type":"done","note":"크롤링 대상 소스 정의 — Clutch.co 한국 디지털 마케팅 에이전시 (103개 리스트)"}],"T-038":[{"date":"2026-03-31 21:47","author":"CTO","type":"done","note":"Clutch.co 크롤러 구현 — 104건 수집 (id, name, slug, profile, location, size)"}]};
+let TASK_HISTORY={};
 const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
 const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
 // ═══ RED DOT NOTIFICATIONS ═══
@@ -732,15 +735,20 @@ function updateRedDots(){
 updateRedDots();
 function markItemRead(id){const m=getReadMap();m[id]=new Date().toISOString().slice(0,10);saveReadMap(m);updateRedDots();}
 
-function openHistoryModal(id,title){
+async function openHistoryModal(id,title){
   markItemRead(id);
   document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
-  const entries=TASK_HISTORY[id]||[];
   const body=document.getElementById('historyBody');
-  if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
-  }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
+  body.innerHTML='<p style="color:var(--muted);font-size:.85rem">로딩 중...</p>';
   document.getElementById('historyOverlay').classList.add('active');
   document.body.style.overflow='hidden';
+  try{
+    const res=await fetch(API+'/api/tasks/'+id+'/history');
+    const data=await res.json();
+    const entries=(data.history||[]).map(e=>({date:e.created_at||e.date,author:e.author,type:e.action||e.type,note:e.note}));
+    if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
+    }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
+  }catch(err){body.innerHTML='<p style="color:var(--red);font-size:.85rem">히스토리 로드 실패</p>';}
 }
 function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');document.body.style.overflow='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal();closeCreativeModal();}});
