@@ -169,6 +169,19 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .task-link{cursor:pointer;transition:color .15s}.task-link:hover{color:var(--blue);text-decoration:underline}
 .task-owner{color:var(--blue);font-size:.75rem;font-weight:600;margin-left:auto;white-space:nowrap}
 .task-date-sm{color:var(--muted);font-size:.72rem;margin-left:8px;white-space:nowrap}
+.agent-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.agent-row:last-child{border:none}
+.agent-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.agent-dot.online{background:#22c55e}.agent-dot.idle{background:#f59e0b}.agent-dot.offline{background:#ef4444}
+.agent-name{font-weight:700;width:40px}
+.agent-detail{color:var(--muted);font-size:.78rem;flex:1}
+.usage-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.83rem}
+.usage-row:last-child{border:none}
+.usage-label{font-weight:600;color:var(--text)}
+.usage-bar{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:0 10px}
+.usage-fill{height:100%;border-radius:3px;transition:width .3s}
+.usage-fill.safe{background:#22c55e}.usage-fill.warn{background:#f59e0b}.usage-fill.danger{background:#ef4444}
+.usage-pct{font-size:.78rem;color:var(--muted);min-width:45px;text-align:right}
 .blocker-item,.rank-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem}
 .blocker-item:last-child,.rank-item:last-child{border:none}
 .rank-num{color:var(--blue);font-weight:700;width:22px;text-align:right;font-size:.9rem}
@@ -383,6 +396,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div style="text-align:center;color:var(--muted);font-size:.8rem;grid-column:1/-1">로딩 중...</div>
   </div>
   <div class="home-link" onclick="navigate('ads',document.querySelectorAll('.nav-item')[2])">자세히 보기 →</div>
+</div>
+
+<div class="home-grid">
+  <div class="panel">
+    <h3>🤖 에이전트 상태</h3>
+    <div id="home-agents" style="color:var(--muted);font-size:.85rem">로딩 중...</div>
+  </div>
+  <div class="panel">
+    <h3>📊 시스템 한도</h3>
+    <div id="home-system" style="color:var(--muted);font-size:.85rem">로딩 중...</div>
+  </div>
 </div>
 </div>
 
@@ -1064,8 +1088,54 @@ function renderLeads(filter='all'){
 }
 function filterLeads(f,btn){document.querySelectorAll('#leads-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLeads(f);}
 
+// ═══ SYSTEM STATUS ═══
+async function loadSystemStatus(){
+  try{
+    const res=await fetch(API+'/api/system-status');
+    const data=await res.json();
+    
+    // Agent status
+    const agentEmoji={CEO:'🤖',CTO:'💻',CMO:'🎯'};
+    const now=new Date();
+    let agentHtml='';
+    for(const [name,info] of Object.entries(data.agents||{})){
+      let status='offline',detail='활동 기록 없음',ago='';
+      if(info&&info.lastActivity){
+        const last=new Date(info.lastActivity);
+        const diffMin=Math.round((now-last)/60000);
+        if(diffMin<30){status='online';ago=diffMin+'분 전';}
+        else if(diffMin<1440){status='idle';const h=Math.round(diffMin/60);ago=h+'시간 전';}
+        else{status='offline';const d=Math.round(diffMin/1440);ago=d+'일 전';}
+        detail=info.note?(info.note.substring(0,30)+(info.note.length>30?'…':'')):'';
+      }
+      agentHtml+=\`<div class="agent-row"><span class="agent-dot \${status}"></span><span class="agent-name">\${name}</span><span class="agent-detail">\${detail||'—'}</span><span style="color:var(--muted);font-size:.75rem">\${ago}</span></div>\`;
+    }
+    // API status
+    agentHtml+=\`<div class="agent-row"><span class="agent-dot online"></span><span class="agent-name">API</span><span class="agent-detail">Worker 응답 \${data.latencyMs}ms</span><span style="color:var(--muted);font-size:.75rem">정상</span></div>\`;
+    document.getElementById('home-agents').innerHTML=agentHtml;
+    
+    // System limits
+    const r2Pct=data.r2.usagePct||0;
+    const d1Rows=data.d1.totalRows;
+    const d1Pct=Math.round(d1Rows/5000000*10000)/100; // 5M row read limit approximation
+    const r2Class=r2Pct>80?'danger':r2Pct>50?'warn':'safe';
+    const d1Class=d1Pct>80?'danger':d1Pct>50?'warn':'safe';
+    
+    let sysHtml='';
+    sysHtml+=\`<div class="usage-row"><span class="usage-label">☁️ R2 저장소</span><div class="usage-bar"><div class="usage-fill \${r2Class}" style="width:\${Math.max(r2Pct,1)}%"></div></div><span class="usage-pct">\${data.r2.sizeMB}MB / 10GB</span></div>\`;
+    sysHtml+=\`<div class="usage-row"><span class="usage-label">🗄️ D1 데이터</span><div class="usage-bar"><div class="usage-fill \${d1Class}" style="width:\${Math.max(d1Pct,1)}%"></div></div><span class="usage-pct">\${d1Rows}행</span></div>\`;
+    sysHtml+=\`<div class="usage-row"><span class="usage-label">📁 R2 파일</span><span style="color:var(--text);margin-left:auto">\${data.r2.files}개</span></div>\`;
+    sysHtml+=\`<div class="usage-row"><span class="usage-label">⚡ Worker</span><span style="color:var(--green);margin-left:auto;font-weight:600">온라인 (\${data.latencyMs}ms)</span></div>\`;
+    document.getElementById('home-system').innerHTML=sysHtml;
+    
+  }catch(e){
+    document.getElementById('home-agents').innerHTML='<div style="color:var(--red);font-size:.8rem">상태 확인 실패</div>';
+    document.getElementById('home-system').innerHTML='<div style="color:var(--red);font-size:.8rem">상태 확인 실패</div>';
+  }
+}
+
 // ── Init ──
-loadTasks();loadAdData();loadLeads();
+loadTasks();loadAdData();loadLeads();loadSystemStatus();
 <\/script>
 </body>
 </html>`;
