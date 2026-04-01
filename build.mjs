@@ -624,6 +624,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div id="ct-tips" style="margin-top:14px"></div>
 </div>
 
+<!-- Quick Links -->
+<div class="panel" style="margin-bottom:20px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="home-link" onclick="navigate('ads',document.querySelectorAll('.nav-item')[2]);setTimeout(()=>{document.querySelector('[onclick*=\\'creatives\\']')?.click()},100)">🎨 소재 비교탭 열기 →</div>
+    <div class="home-link" onclick="navigate('ads',document.querySelectorAll('.nav-item')[2]);setTimeout(()=>{document.querySelector('[onclick*=\\'utm\\']')?.click()},100)">🔗 UTM 빌더 열기 →</div>
+  </div>
+</div>
+
 <!-- Content History -->
 <div class="panel">
   <h3>📚 생성 이력</h3>
@@ -1335,12 +1343,38 @@ function renderContentResult(data){
   document.getElementById('ct-variations').innerHTML=vars.map(v=>{
     const ac=appealColors[v.appeal]||'background:var(--bg);color:var(--text)';
     const tags=(v.hashtags||[]).map(t=>'<span class="ct-card-tag">'+t+'</span>').join('');
-    return '<div class="ct-card"><div class="ct-card-head"><span class="ct-card-appeal" style="'+ac+'">'+v.appeal+'</span><span class="ice ice-medium">'+v.score+'/10</span></div><div class="ct-card-headline">'+v.headline+'</div><div class="ct-card-body">'+v.body+'</div><div class="ct-card-cta">→ '+v.cta+'</div><div class="ct-card-tags">'+tags+'</div></div>';
+    return '<div class="ct-card"><div class="ct-card-head"><span class="ct-card-appeal" style="'+ac+'">'+v.appeal+'</span><span class="ice ice-medium">'+v.score+'/10</span></div><div class="ct-card-headline">'+v.headline+'</div><div class="ct-card-body">'+v.body+'</div><div class="ct-card-cta">→ '+v.cta+'</div><div class="ct-card-tags">'+tags+'</div><div style="margin-top:8px;display:flex;gap:6px"><button class="export-btn" style="padding:5px 12px;font-size:.75rem;background:var(--blue);color:#fff" onclick="publishContent('+v.id+',\''+encodeURIComponent(v.headline)+'\')">📢 게재 + UTM</button><button class="export-btn" style="padding:5px 12px;font-size:.75rem;background:var(--bg);color:var(--text);border:1px solid var(--border)" onclick="copyContent(this.closest(\'.ct-card\'))">📋 복사</button></div></div>';
   }).join('');
   const tips=[];
   if(data.ab_tip)tips.push('🔬 A/B 테스트: '+data.ab_tip);
   if(data.channel_tip)tips.push('📢 채널 팁: '+data.channel_tip);
   document.getElementById('ct-tips').innerHTML=tips.map(t=>'<div class="ct-tip" style="margin-bottom:8px">'+t+'</div>').join('');
+}
+
+function publishContent(varId,headline){
+  const channel=document.getElementById('ct-channel').value;
+  const theme=document.getElementById('ct-theme').value||'campaign';
+  const source=channel==='email'?'email':'social';
+  const medium=channel;
+  const campaign='wakalab_'+theme.replace(/[^a-zA-Z0-9가-힣]/g,'_').substring(0,30);
+  const content='v'+varId+'_'+decodeURIComponent(headline).substring(0,15).replace(/[^a-zA-Z0-9가-힣]/g,'');
+  const baseUrl='https://wakain.pages.dev';
+  const utm=baseUrl+'?utm_source='+source+'&utm_medium='+medium+'&utm_campaign='+campaign+'&utm_content='+content;
+  // Save UTM to D1
+  fetch(API+'/api/utm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source,medium,campaign,content,full_url:utm})}).catch(()=>{});
+  // Copy to clipboard
+  navigator.clipboard.writeText(utm).then(()=>{
+    document.getElementById('ct-status').textContent='✅ UTM 링크 복사됨: '+utm.substring(0,60)+'...';
+  });
+}
+
+function copyContent(card){
+  const headline=card.querySelector('.ct-card-headline')?.textContent||'';
+  const body=card.querySelector('.ct-card-body')?.textContent||'';
+  const cta=card.querySelector('.ct-card-cta')?.textContent||'';
+  const tags=Array.from(card.querySelectorAll('.ct-card-tag')).map(t=>t.textContent).join(' ');
+  const text=headline+'\\n\\n'+body+'\\n\\n'+cta+(tags?'\\n\\n'+tags:'');
+  navigator.clipboard.writeText(text).then(()=>{document.getElementById('ct-status').textContent='📋 카피 복사됨';});
 }
 
 async function loadContentHistory(){
