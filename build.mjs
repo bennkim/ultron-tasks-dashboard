@@ -869,7 +869,10 @@ async function loadReferences(){
       html+='<div style="display:grid;gap:12px">';
       refs.forEach(ref=>{
         const points=(ref.appeal_points?JSON.parse(ref.appeal_points):[]).map(p=>'<span style="display:inline-block;padding:2px 6px;background:var(--blue-light);color:var(--blue-dark);border-radius:4px;font-size:.7rem;margin-right:4px">'+p+'</span>').join('');
-        html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;transition:box-shadow .2s" onmouseover="this.style.boxShadow=\\'var(--shadow-md)\\'" onmouseout="this.style.boxShadow=\\'\\'">'+
+        const imageThumb=ref.image_url?'<img src="'+ref.image_url+'" alt="Ad Preview" style="width:100px;height:100px;object-fit:cover;border-radius:6px;cursor:pointer;flex-shrink:0" onclick="openLightbox(\\''+ref.image_url+'\\')">':'';
+        html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;transition:box-shadow .2s;display:flex;gap:12px" onmouseover="this.style.boxShadow=\\'var(--shadow-md)\\'" onmouseout="this.style.boxShadow=\\'\\'">'+
+          imageThumb+
+          '<div style="flex:1">'+
           '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">'+
           '<div style="font-weight:600;color:var(--text);font-size:.85rem">'+(ref.link_title||'(제목 없음)')+'</div>'+
           '<span style="font-size:.7rem;color:var(--muted);white-space:nowrap">'+ref.keyword+'</span>'+
@@ -879,6 +882,7 @@ async function loadReferences(){
           '<div style="display:flex;gap:8px;align-items:center">'+
           (ref.cta_text?'<span style="font-size:.75rem;color:var(--blue);background:var(--blue-light);padding:4px 8px;border-radius:4px">'+ref.cta_text+'</span>':'')+
           '<a href="'+ref.snapshot_url+'" target="_blank" style="margin-left:auto;font-size:.75rem;color:var(--blue);text-decoration:none">광고 보기 →</a>'+
+          '</div>'+
           '</div>'+
           '</div>';
       });
