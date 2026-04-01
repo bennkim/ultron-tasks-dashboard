@@ -1100,7 +1100,19 @@ async function loadSystemStatus(){
     let agentHtml='';
     for(const [name,info] of Object.entries(data.agents||{})){
       let status='offline',detail='활동 기록 없음',ago='';
-      if(info&&info.lastActivity){
+      // Prefer runtime status if available (event-driven from OpenClaw)
+      if(info&&info.runtime&&info.runtime.status){
+        status=info.runtime.status;
+        detail=info.runtime.detail||(info.note||'');
+        if(info.runtime.updatedAt){
+          const last=new Date(info.runtime.updatedAt);
+          const diffMin=Math.round((now-last)/60000);
+          if(diffMin<1)ago='방금';
+          else if(diffMin<60)ago=diffMin+'분 전';
+          else if(diffMin<1440){const h=Math.round(diffMin/60);ago=h+'시간 전';}
+          else{const d=Math.round(diffMin/1440);ago=d+'일 전';}
+        }
+      } else if(info&&info.lastActivity){
         const last=new Date(info.lastActivity);
         const diffMin=Math.round((now-last)/60000);
         if(diffMin<30){status='online';ago=diffMin+'분 전';}
@@ -1108,7 +1120,8 @@ async function loadSystemStatus(){
         else{status='offline';const d=Math.round(diffMin/1440);ago=d+'일 전';}
         detail=info.note?(info.note.substring(0,30)+(info.note.length>30?'…':'')):'';
       }
-      agentHtml+=\`<div class="agent-row"><span class="agent-dot \${status}"></span><span class="agent-name">\${name}</span><span class="agent-detail">\${detail||'—'}</span><span style="color:var(--muted);font-size:.75rem">\${ago}</span></div>\`;
+      if(detail&&detail.length>30)detail=detail.substring(0,30)+'…';
+      agentHtml+=\`<div class="agent-row"><span class="agent-dot \${status}"></span><span class="agent-name">\${agentEmoji[name]||''} \${name}</span><span class="agent-detail">\${detail||'—'}</span><span style="color:var(--muted);font-size:.75rem">\${ago}</span></div>\`;
     }
     // API status
     agentHtml+=\`<div class="agent-row"><span class="agent-dot online"></span><span class="agent-name">API</span><span class="agent-detail">Worker 응답 \${data.latencyMs}ms</span><span style="color:var(--muted);font-size:.75rem">정상</span></div>\`;
