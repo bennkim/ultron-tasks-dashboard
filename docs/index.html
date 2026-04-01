@@ -294,7 +294,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 3. 31. 오후 8:20:24</div>
+    <div>빌드: 2026. 4. 1. 오전 11:42:04</div>
     <div style="margin-top:4px">진행률 42% (23/55)</div>
     <div class="progress-mini"><div class="progress-mini-fill" style="width:42%"></div></div>
   </div>
@@ -363,6 +363,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <button class="ad-sub-tab" onclick="switchAdSub('creatives',this)">🎨 소재 비교</button>
   <button class="ad-sub-tab" onclick="switchAdSub('funnel',this)">🔻 퍼널 분석</button>
   <button class="ad-sub-tab" onclick="switchAdSub('utm',this)">🔗 UTM 빌더</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('references',this)">🔖 레퍼런스</button>
 </div>
 
 <div id="ad-overview" class="ad-sub-content active">
@@ -402,6 +403,35 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </div>
 <div class="panel"><h3>📌 최근 생성한 UTM 링크</h3><div id="utm-history" style="font-size:.8rem;color:var(--muted)"><p>로딩 중...</p></div></div>
+</div>
+
+<div id="ad-references" class="ad-sub-content">
+<div class="panel">
+  <h3>🔖 광고 레퍼런스 (Meta Ad Library 크롤링)</h3>
+  <div style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap">
+    <div>
+      <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px">날짜</label>
+      <input type="date" id="ref-date" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px" onchange="loadReferences()">
+    </div>
+    <div>
+      <label style="font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px">키워드</label>
+      <select id="ref-keyword" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px" onchange="loadReferences()">
+        <option value="">전체</option>
+        <option value="마케팅 자동화">마케팅 자동화</option>
+        <option value="AI 마케팅">AI 마케팅</option>
+        <option value="광고 자동화">광고 자동화</option>
+        <option value="디지털 마케팅">디지털 마케팅</option>
+        <option value="성과 마케팅">성과 마케팅</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button onclick="loadReferences()" style="padding:6px 16px;background:var(--blue);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600">🔄 새로고침</button>
+    </div>
+  </div>
+  <div id="references-container" style="font-size:.85rem">
+    <p style="color:var(--muted)">로딩 중...</p>
+  </div>
+</div>
 </div>
 
 </div><!-- /ad-content -->
@@ -512,7 +542,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal()
 function filterBy(role,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.task-row').forEach(row=>{if(role==='all'){row.style.display='';return;}const a=row.querySelector('.task-assignee')?.textContent||'';row.style.display=a.includes(role)?'':'none';});}
 
 // ═══ AD MANAGER ═══
-function switchAdSub(id,btn){document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));document.getElementById('ad-'+id).classList.add('active');btn.classList.add('active');}
+function switchAdSub(id,btn){document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));document.getElementById('ad-'+id).classList.add('active');btn.classList.add('active');if(id==='references'&&REFERENCES.length===0)loadReferences();}
 
 const API='https://wakalab-media-worker.kimbang0105.workers.dev';
 const FUNNEL_STAGES=['ViewContent','CompleteRegistration','InitiateCheckout','Purchase'];
@@ -713,6 +743,65 @@ async function openCreativeModal(creativeKey,label){
   document.getElementById('cmBody').innerHTML=html;
 }
 function closeCreativeModal(){document.getElementById('creativeOverlay').classList.remove('active');document.body.style.overflow='';}
+
+// ═══ REFERENCES ═══
+let REFERENCES=[];
+async function loadReferences(){
+  const date=document.getElementById('ref-date')?.value||'';
+  const keyword=document.getElementById('ref-keyword')?.value||'';
+  const container=document.getElementById('references-container');
+  if(!container)return;
+  
+  container.innerHTML='<p style="color:var(--muted)">로딩 중...</p>';
+  
+  try{
+    let url=API+'/api/references?limit=50';
+    if(date)url+='&date='+date;
+    if(keyword)url+='&keyword='+encodeURIComponent(keyword);
+    
+    const res=await fetch(url);
+    const data=await res.json();
+    REFERENCES=data.references||[];
+    
+    if(REFERENCES.length===0){
+      container.innerHTML='<p style="color:var(--muted)">레퍼런스가 없습니다.</p>';
+      return;
+    }
+    
+    const byDate={};
+    REFERENCES.forEach(ref=>{
+      if(!byDate[ref.collected_date])byDate[ref.collected_date]=[];
+      byDate[ref.collected_date].push(ref);
+    });
+    
+    let html='';
+    Object.keys(byDate).sort().reverse().forEach(date=>{
+      const refs=byDate[date];
+      html+='<div style="margin-bottom:24px"><h4 style="font-size:.95rem;color:var(--blue-dark);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--border)">📅 '+date+' ('+refs.length+'건)</h4>';
+      html+='<div style="display:grid;gap:12px">';
+      refs.forEach(ref=>{
+        const points=(ref.appeal_points?JSON.parse(ref.appeal_points):[]).map(p=>'<span style="display:inline-block;padding:2px 6px;background:var(--blue-light);color:var(--blue-dark);border-radius:4px;font-size:.7rem;margin-right:4px">'+p+'</span>').join('');
+        html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;transition:box-shadow .2s" onmouseover="this.style.boxShadow=\'var(--shadow-md)\'" onmouseout="this.style.boxShadow=\'\'">'+
+          '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">'+
+          '<div style="font-weight:600;color:var(--text);font-size:.85rem">'+(ref.link_title||'(제목 없음)')+'</div>'+
+          '<span style="font-size:.7rem;color:var(--muted);white-space:nowrap">'+ref.keyword+'</span>'+
+          '</div>'+
+          (ref.creative_body?'<p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;line-height:1.5">'+ref.creative_body.slice(0,200)+(ref.creative_body.length>200?'...':'')+'</p>':'')+
+          (points?'<div style="margin-bottom:8px">'+points+'</div>':'')+
+          '<div style="display:flex;gap:8px;align-items:center">'+
+          (ref.cta_text?'<span style="font-size:.75rem;color:var(--blue);background:var(--blue-light);padding:4px 8px;border-radius:4px">'+ref.cta_text+'</span>':'')+
+          '<a href="'+ref.snapshot_url+'" target="_blank" style="margin-left:auto;font-size:.75rem;color:var(--blue);text-decoration:none">광고 보기 →</a>'+
+          '</div>'+
+          '</div>';
+      });
+      html+='</div></div>';
+    });
+    
+    container.innerHTML=html;
+  }catch(e){
+    container.innerHTML='<p style="color:var(--red)">❌ 로딩 실패: '+e.message+'</p>';
+  }
+}
 
 // ═══ LEADS ═══
 let LEADS=[];
