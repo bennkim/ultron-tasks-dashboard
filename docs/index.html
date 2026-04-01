@@ -294,7 +294,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 4. 1. 오후 3:50:06</div>
+    <div>빌드: 2026. 4. 1. 오후 4:02:07</div>
     <div style="margin-top:4px">진행률 0% (0/0)</div>
     <div class="progress-mini"><div class="progress-mini-fill" style="width:0%"></div></div>
   </div>
@@ -977,7 +977,7 @@ function renderLeads(filter='all'){
 function filterLeads(f,btn){document.querySelectorAll('#leads-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLeads(f);}
 
 // ── Init ──
-loadAdData();loadLeads();
+loadTasks();loadAdData();loadLeads();
 </script>
 </body>
 </html>

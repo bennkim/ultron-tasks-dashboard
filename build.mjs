@@ -1017,7 +1017,7 @@ function renderLeads(filter='all'){
 function filterLeads(f,btn){document.querySelectorAll('#leads-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderLeads(f);}
 
 // ── Init ──
-loadAdData();loadLeads();
+loadTasks();loadAdData();loadLeads();
 <\/script>
 </body>
 </html>`;
