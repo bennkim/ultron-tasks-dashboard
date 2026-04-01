@@ -1331,7 +1331,7 @@ async function generateImagePrompt(){
     document.getElementById('ct-status').textContent='✅ 프롬프트 생성 완료';
     const panel=document.getElementById('ct-result');
     panel.style.display='block';
-    document.getElementById('ct-variations').innerHTML='<div class="ct-card"><div class="ct-card-headline">📐 1:1 (정사각형)</div><div class="ct-card-body">'+((data.square||'—'))+'</div></div><div class="ct-card"><div class="ct-card-headline">📱 4:5 (세로형)</div><div class="ct-card-body">'+(data.vertical||'—')+'</div></div><div class="ct-card"><div class="ct-card-headline">🚫 Negative</div><div class="ct-card-body">'+(data.negative||'—')+'</div></div>';
+    document.getElementById('ct-variations').innerHTML='<div class="ct-card"><div class="ct-card-headline">📐 1:1 메인 (1080x1080)</div><div class="ct-card-body">'+(data.prompt_1080||data.square||'—')+'</div></div><div class="ct-card"><div class="ct-card-headline">🎨 대안 구도</div><div class="ct-card-body">'+(data.prompt_alt||data.vertical||'—')+'</div></div><div class="ct-card"><div class="ct-card-headline">🚫 Negative</div><div class="ct-card-body">'+(data.negative||'—')+'</div></div>'+(data.meta_checklist?'<div class="ct-card"><div class="ct-card-headline">✅ Meta 광고 체크리스트</div><div class="ct-card-body">'+data.meta_checklist+'</div></div>':'');
     document.getElementById('ct-tips').innerHTML=data.style_notes?'<div class="ct-tip">💡 '+data.style_notes+'</div>':'';
   }catch(e){document.getElementById('ct-status').textContent='❌ '+e.message;}
 }
