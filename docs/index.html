@@ -225,7 +225,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 /* History Modal */
 .history-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}.history-modal-overlay.active{opacity:1;pointer-events:auto}
-.history-modal{background:var(--card);border-radius:16px;padding:24px;max-width:520px;width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative}
+.history-modal{background:var(--card);border-radius:16px;padding:24px;max-width:640px;width:90vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative}
+.ticket-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.ticket-meta .badge{font-size:.72rem;padding:3px 10px}
+.ticket-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:18px;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)}
+.ticket-field{font-size:.8rem}.ticket-field-label{color:var(--muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}.ticket-field-value{color:var(--text);word-break:break-word}
+.ticket-field.full{grid-column:1/-1}
+.ticket-section-title{font-size:.82rem;font-weight:700;color:var(--blue-dark);margin-bottom:10px;padding-top:4px;border-top:1px solid var(--border)}
+.ticket-commit{font-family:'SF Mono',monospace;font-size:.75rem;color:var(--blue);background:var(--blue-light);padding:2px 8px;border-radius:6px;text-decoration:none}.ticket-commit:hover{text-decoration:underline}
 .history-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
 .history-modal-title{font-size:1rem;font-weight:700;color:var(--blue-dark);flex:1}
 .history-modal-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);padding:4px 8px;border-radius:8px;transition:background .15s;flex-shrink:0}.history-modal-close:hover{background:var(--blue-light);color:var(--blue)}
@@ -315,7 +322,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     <div class="nav-item" onclick="navigate('leads',this)"><span class="nav-icon">📧</span>Leads</div>
   </div>
   <div class="sidebar-footer">
-    <div>빌드: 2026. 4. 1. 오후 6:50:29</div>
+    <div>빌드: 2026. 4. 1. 오후 6:58:03</div>
     <div style="margin-top:4px" id="sidebar-progress">진행률 0% (0/0)</div>
     <div class="progress-mini"><div class="progress-mini-fill" id="sidebar-bar" style="width:0%"></div></div>
   </div>
@@ -513,8 +520,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 </div>
 <div class="copy-toast" id="copy-toast">✅ 복사됨!</div>
 <div class="history-modal-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistoryModal()">
-  <div class="history-modal">
-    <div class="history-modal-header"><span class="history-modal-title" id="historyTitle"></span><button class="history-modal-close" onclick="closeHistoryModal()">✕</button></div>
+  <div class="history-modal ticket-detail">
+    <div class="history-modal-header">
+      <span class="history-modal-title" id="historyTitle"></span>
+      <button class="history-modal-close" onclick="closeHistoryModal()">✕</button>
+    </div>
+    <div id="ticketMeta" class="ticket-meta"></div>
+    <div id="ticketFields" class="ticket-fields"></div>
+    <div class="ticket-section-title">📜 활동 로그</div>
     <div id="historyBody"></div>
   </div>
 </div>
@@ -709,8 +722,8 @@ function goToTask(taskId){
 
 // ═══ HISTORY MODAL ═══
 let TASK_HISTORY={};
-const typeEmoji={created:'🆕',progress:'🔄',done:'✅',blocked:'🚨'};
-const typeTlClass={created:'tl-created',progress:'tl-progress',done:'tl-done',blocked:'tl-blocked'};
+const typeEmoji={created:'🆕',started:'🚀',progress:'🔄',done:'✅',completed:'✅',blocked:'🚨',reopened:'🔓',commented:'💬',assigned:'👤'};
+const typeTlClass={created:'tl-created',started:'tl-progress',progress:'tl-progress',done:'tl-done',completed:'tl-done',blocked:'tl-blocked',reopened:'tl-created',commented:'tl-progress',assigned:'tl-created'};
 // ═══ RED DOT NOTIFICATIONS ═══
 const TASK_LATEST={"E-001":"2026-03-28 17:41","S-001":"2026-03-27 15:12","S-003":"2026-03-31 11:30","T-001":"2026-03-28 09:43","T-002":"2026-03-28 14:47","T-003":"2026-03-31 11:30","T-006":"2026-03-28 13:00","E-002":"2026-03-27 17:39","E-003":"2026-03-28 09:07","E-004":"2026-03-28 11:14","S-017":"2026-03-31 16:48","T-048":"2026-03-31 14:30","T-049":"2026-03-31 16:48","S-019":"2026-03-31 18:05","T-054":"2026-03-31 17:30","T-055":"2026-03-31 18:05","E-005":"2026-03-31 19:12","T-037":"2026-03-31 19:30","T-038":"2026-03-31 21:47"};
 function getReadMap(){try{return JSON.parse(localStorage.getItem('taskReadMap')||'{}');}catch(e){return {};}}
@@ -737,18 +750,54 @@ function markItemRead(id){const m=getReadMap();m[id]=new Date().toISOString().sl
 
 async function openHistoryModal(id,title){
   markItemRead(id);
-  document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
+  const metaEl=document.getElementById('ticketMeta');
+  const fieldsEl=document.getElementById('ticketFields');
   const body=document.getElementById('historyBody');
+  metaEl.innerHTML='';fieldsEl.innerHTML='';
   body.innerHTML='<p style="color:var(--muted);font-size:.85rem">로딩 중...</p>';
+  document.getElementById('historyTitle').textContent=id+(title?' — '+title:'');
   document.getElementById('historyOverlay').classList.add('active');
   document.body.style.overflow='hidden';
   try{
-    const res=await fetch(API+'/api/tasks/'+id+'/history');
+    const res=await fetch(API+'/api/tasks/'+id);
     const data=await res.json();
+    const t=data.task;
     const entries=(data.history||[]).map(e=>({date:e.created_at||e.date,author:e.author,type:e.action||e.type,note:e.note}));
+    if(t){
+      // Title update
+      document.getElementById('historyTitle').textContent=t.id+' — '+(t.title||t.description||'');
+      // Meta badges
+      let meta='<span class="badge badge-'+statusClass(t.status)+'">'+statusEmoji(t.status)+' '+t.status+'</span>';
+      if(data.epic)meta+='<span class="badge" style="background:var(--blue-light);color:var(--blue)">'+data.epic.id+' '+data.epic.title+'</span>';
+      if(data.story)meta+='<span class="badge" style="background:rgba(245,158,11,.1);color:var(--yellow)">'+data.story.id+'</span>';
+      if(t.ice_score>0)meta+='<span class="ice '+iceClass(t.ice_score)+'">ICE '+t.ice_score+'</span>';
+      metaEl.innerHTML=meta;
+      // Fields grid
+      const f=(label,val,full)=>'<div class="ticket-field'+(full?' full':'')+'"><div class="ticket-field-label">'+label+'</div><div class="ticket-field-value">'+(val||'—')+'</div></div>';
+      let fields='';
+      fields+=f('요청자 (Owner)',t.owner);
+      fields+=f('작업자 (Assignee)',t.assignee);
+      fields+=f('착수일',t.started_at);
+      fields+=f('완료일',t.completed_date);
+      fields+=f('생성일',t.created_at?.substring(0,16));
+      fields+=f('수정일',t.updated_at?.substring(0,16));
+      if(t.blocked_reason)fields+=f('🚨 블로커 사유',t.blocked_reason,true);
+      if(t.related_commit){
+        const commitHtml=t.related_commit.startsWith('http')?'<a class="ticket-commit" href="'+t.related_commit+'" target="_blank">'+t.related_commit+'</a>':'<span class="ticket-commit">'+t.related_commit+'</span>';
+        fields+=f('관련 커밋/PR',commitHtml,true);
+      }
+      if(t.completion_criteria)fields+=f('✅ 완료 조건',t.completion_criteria,true);
+      if(t.notes)fields+=f('📝 메모',t.notes,true);
+      if(t.description&&t.description!==t.title)fields+=f('상세 설명',t.description,true);
+      fieldsEl.innerHTML=fields;
+    }else{metaEl.innerHTML='';fieldsEl.innerHTML='';}
+    // History timeline
     if(!entries.length){body.innerHTML='<p class="no-history">📝 기록 없음</p>';
-    }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+e.note+'</div></div></div>').join('')+'</div>';}
-  }catch(err){body.innerHTML='<p style="color:var(--red);font-size:.85rem">히스토리 로드 실패</p>';}
+    }else{body.innerHTML='<div class="timeline">'+entries.map(e=>'<div class="timeline-item"><div class="timeline-dot '+(typeTlClass[e.type]||'tl-progress')+'">'+(typeEmoji[e.type]||'📝')+'</div><div class="timeline-content"><div class="tl-meta">'+e.date+' · '+e.author+'</div><div class="tl-note">'+(e.note||'')+'</div></div></div>').join('')+'</div>';}
+  }catch(err){
+    metaEl.innerHTML='';fieldsEl.innerHTML='';
+    body.innerHTML='<p style="color:var(--red);font-size:.85rem">로드 실패: '+err.message+'</p>';
+  }
 }
 function closeHistoryModal(){document.getElementById('historyOverlay').classList.remove('active');document.body.style.overflow='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal();closeCreativeModal();}});
