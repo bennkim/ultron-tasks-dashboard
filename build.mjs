@@ -167,6 +167,8 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .home-tab:hover{color:var(--blue-dark)}
 .home-tab-content{display:none}.home-tab-content.active{display:block}
 .task-link{cursor:pointer;transition:color .15s}.task-link:hover{color:var(--blue);text-decoration:underline}
+.task-owner{color:var(--blue);font-size:.75rem;font-weight:600;margin-left:auto;white-space:nowrap}
+.task-date-sm{color:var(--muted);font-size:.72rem;margin-left:8px;white-space:nowrap}
 .blocker-item,.rank-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem}
 .blocker-item:last-child,.rank-item:last-child{border:none}
 .rank-num{color:var(--blue);font-weight:700;width:22px;text-align:right;font-size:.9rem}
@@ -366,10 +368,10 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div class="home-grid">
   <div class="panel">
     <div class="home-tab-bar">
-      <button class="home-tab active" onclick="switchHomeTab('inprogress',this)">🔄 진행 중 (<span id="home-ip-count">0</span>)</button>
+      <button class="home-tab active" onclick="switchHomeTab('completed',this)">✅ 최근 완료</button>
       <button class="home-tab" onclick="switchHomeTab('blockers',this)">🚨 블로커 (<span id="home-blocker-count">0</span>)</button>
     </div>
-    <div id="home-tab-inprogress" class="home-tab-content active"><div style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
+    <div id="home-tab-completed" class="home-tab-content active"><div style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
     <div id="home-tab-blockers" class="home-tab-content"><div style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
   </div>
   <div class="panel"><h3>🏆 ICE 랭킹 Top 10</h3><div id="home-ice-ranking" style="color:var(--muted);font-size:.85rem">로딩 중...</div></div>
@@ -674,11 +676,14 @@ function updateHomeStats(tasks){
   const sp=document.getElementById('sidebar-progress');if(sp)sp.textContent='진행률 '+pct+'% ('+done+'/'+total+')';
   const sb=document.getElementById('sidebar-bar');if(sb)sb.style.width=pct+'%';
   
-  // In Progress tab (sorted by updated_at desc)
-  const inProgressTasks=tasks.filter(t=>t.status==='IN_PROGRESS').sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
-  document.getElementById('home-ip-count').textContent=inProgressTasks.length;
-  const ipHtml=inProgressTasks.length===0?'<p style="color:var(--muted);font-size:.85rem">없음</p>':inProgressTasks.map(t=>\`<div class="blocker-item"><span class="badge badge-progress">🔄</span><span class="rank-id task-link" onclick="goToTask('\${t.id}')">\${t.id}</span><span class="task-link" onclick="goToTask('\${t.id}')">\${(t.title||t.description||'').substring(0,40)}\${(t.title||t.description||'').length>40?'…':''}</span><span style="color:var(--muted);margin-left:auto">\${t.owner||'—'}</span></div>\`).join('');
-  document.getElementById('home-tab-inprogress').innerHTML=ipHtml;
+  // Recently completed tab (sorted by completed_date/updated_at desc)
+  const completedTasks=tasks.filter(t=>t.status==='DONE').sort((a,b)=>(b.completed_date||b.updated_at||'').localeCompare(a.completed_date||a.updated_at||'')).slice(0,15);
+  const compHtml=completedTasks.length===0?'<p style="color:var(--muted);font-size:.85rem">없음</p>':completedTasks.map(t=>{
+    const d=t.completed_date||t.updated_at||'';
+    const dateStr=d?d.substring(0,10):'';
+    return\`<div class="blocker-item"><span class="badge badge-done">✅</span><span class="rank-id task-link" onclick="goToTask('\${t.id}')">\${t.id}</span><span class="task-link" onclick="goToTask('\${t.id}')">\${(t.title||t.description||'').substring(0,35)}\${(t.title||t.description||'').length>35?'…':''}</span><span class="task-owner">\${t.owner||'—'}</span><span class="task-date-sm">\${dateStr}</span></div>\`;
+  }).join('');
+  document.getElementById('home-tab-completed').innerHTML=compHtml;
   
   // Blockers tab (sorted by updated_at desc)
   const blockers=tasks.filter(t=>t.status==='BLOCKED').sort((a,b)=>(b.updated_at||'').localeCompare(a.updated_at||''));
