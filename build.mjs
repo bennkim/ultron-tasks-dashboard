@@ -669,8 +669,7 @@ function updateHomeStats(tasks){
   document.getElementById('home-ice-ranking').innerHTML=iceHtml;
 }
 
-// Load tasks on page load
-loadTasks();
+// loadTasks() called in Init section at bottom
 
 // ═══ HISTORY MODAL ═══
 const TASK_HISTORY=${JSON.stringify(taskHistory)};
