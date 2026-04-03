@@ -228,7 +228,12 @@ export function HomePage({ onTabChange }: HomePageProps) {
       {/* 4. 에이전트 상태 */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">🤖 에이전트 상태</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">🤖 에이전트 상태</CardTitle>
+            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full" title="30분 내 활성 세션이 없으면 offline, cron만 돌면 idle, 활성 세션이 있으면 online">
+              기준: 30분 세션 활성
+            </span>
+          </div>
         </CardHeader>
         <CardContent>
           {statusError ? (
@@ -236,34 +241,48 @@ export function HomePage({ onTabChange }: HomePageProps) {
           ) : !systemStatus ? (
             <p className="text-sm text-muted-foreground">데이터 없음</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-1">
               {Object.entries(systemStatus.agents ?? {}).map(([key, agent]) => {
                 const meta = AGENT_META[key] ?? { label: key, emoji: '🤖' }
                 const status = agent.runtime?.status ?? agent.status
                 const detail = agent.runtime?.detail ?? agent.detail
-                const timestamp = agent.runtime?.timestamp ?? agent.lastActivity
+                const timestamp = agent.runtime?.updatedAt ?? agent.runtime?.timestamp ?? agent.lastActivity
+                const lastNote = agent.note
+                const lastAction = agent.action
                 return (
-                  <div key={key} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
-                    <span className="text-xl">{meta.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <StatusDot status={status} />
-                        <span className="font-medium text-sm">{meta.label}</span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${status === 'online' ? 'text-green-600 border-green-300' : status === 'idle' ? 'text-yellow-600 border-yellow-300' : 'text-red-600 border-red-300'}`}
-                        >
-                          {status}
-                        </Badge>
+                  <div key={key} className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{meta.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <StatusDot status={status} />
+                          <span className="font-medium text-sm">{meta.label}</span>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${status === 'online' ? 'text-green-600 border-green-300' : status === 'idle' ? 'text-yellow-600 border-yellow-300' : 'text-red-600 border-red-300'}`}
+                          >
+                            {status}
+                          </Badge>
+                        </div>
+                        {detail && <p className="text-xs text-muted-foreground">{detail}</p>}
                       </div>
-                      {detail && <p className="text-xs text-muted-foreground truncate">{detail}</p>}
+                      <span className="text-xs text-muted-foreground shrink-0">{timeAgo(timestamp)}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground shrink-0">{timeAgo(timestamp)}</span>
+                    {lastNote && (
+                      <div className="mt-2 ml-9 pl-3 border-l-2 border-muted">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                            {lastAction === 'done' || lastAction === 'completed' ? '✅ 마지막 작업' : '🔄 현재 작업'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-foreground/80 leading-relaxed">{lastNote}</p>
+                      </div>
+                    )}
                   </div>
                 )
               })}
               {systemStatus.api?.latencyMs !== undefined && (
-                <div className="pt-1 text-xs text-muted-foreground flex items-center gap-2">
+                <div className="pt-2 text-xs text-muted-foreground flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
                   API 레이턴시: {systemStatus.api.latencyMs}ms
                 </div>

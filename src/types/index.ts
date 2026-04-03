@@ -59,6 +59,9 @@ export interface TaskDetailResponse {
 }
 
 export interface AgentInfo {
+  action?: string
+  note?: string
+  currentTask?: string
   status: 'online' | 'idle' | 'offline'
   detail?: string
   lastActivity?: string
@@ -66,6 +69,7 @@ export interface AgentInfo {
     status: 'online' | 'idle' | 'offline'
     detail?: string
     timestamp?: string
+    updatedAt?: string
   }
 }
 
