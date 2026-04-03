@@ -1,19 +1,23 @@
 import { useState } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
+import { TasksPage } from '@/pages/TasksPage'
+import { AdManagerPage } from '@/pages/AdManagerPage'
+import { LeadsPage } from '@/pages/LeadsPage'
+import { ContentsPage } from '@/pages/ContentsPage'
 
 function getPage(tab: string, onTabChange: (id: string) => void) {
   switch (tab) {
     case 'home':
       return <HomePage onTabChange={onTabChange} />
     case 'tasks':
-      return <div><h1 className="text-2xl font-semibold mb-2">Tasks</h1><p className="text-muted-foreground">태스크 관리</p></div>
+      return <TasksPage />
     case 'ad-manager':
-      return <div><h1 className="text-2xl font-semibold mb-2">Ad Manager</h1><p className="text-muted-foreground">광고 관리</p></div>
+      return <AdManagerPage />
     case 'leads':
-      return <div><h1 className="text-2xl font-semibold mb-2">Leads</h1><p className="text-muted-foreground">리드 관리</p></div>
+      return <LeadsPage />
     case 'contents':
-      return <div><h1 className="text-2xl font-semibold mb-2">Contents</h1><p className="text-muted-foreground">콘텐츠 관리</p></div>
+      return <ContentsPage />
     default:
       return <HomePage onTabChange={onTabChange} />
   }
