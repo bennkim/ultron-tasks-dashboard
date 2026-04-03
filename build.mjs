@@ -462,6 +462,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
 <div class="ad-sub-tabs">
   <button class="ad-sub-tab active" onclick="switchAdSub('overview',this)">📊 일별 개요</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('campaigns',this)">📋 캠페인</button>
   <button class="ad-sub-tab" onclick="switchAdSub('creatives',this)">🎨 소재 비교</button>
   <button class="ad-sub-tab" onclick="switchAdSub('funnel',this)">🔻 퍼널 분석</button>
   <button class="ad-sub-tab" onclick="switchAdSub('utm',this)">🔗 UTM 빌더</button>
@@ -471,6 +472,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <div id="ad-overview" class="ad-sub-content active">
   <div id="kpi-container" class="kpi-grid"></div>
   <div class="panel"><h3>📅 일별 캠페인 합산</h3><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>날짜</th><th>노출</th><th>도달</th><th>클릭</th><th>링크클릭</th><th>CTR</th><th>CPC</th><th>소진액</th><th>LPV</th><th>전환</th><th>매출</th><th>ROAS</th></tr></thead><tbody id="daily-body"></tbody></table></div></div>
+</div>
+
+<div id="ad-campaigns" class="ad-sub-content">
+  <div class="section-title">📋 캠페인 목록</div>
+  <div class="panel"><div style="overflow-x:auto"><table class="data-table"><thead><tr><th>캠페인명</th><th>상태</th><th>목표</th><th>시작일</th><th>종료일</th><th>총 소진액</th><th>노출</th><th>클릭</th><th>CTR</th><th>전환</th><th>ROAS</th></tr></thead><tbody id="campaigns-body"></tbody></table></div></div>
 </div>
 
 <div id="ad-creatives" class="ad-sub-content">
@@ -941,7 +947,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHistoryModal()
 function filterBy(role,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.task-row').forEach(row=>{if(role==='all'){row.style.display='';return;}const a=row.querySelector('.task-assignee')?.textContent||'';row.style.display=a.includes(role)?'':'none';});}
 
 // ═══ AD MANAGER ═══
-function switchAdSub(id,btn){document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));document.getElementById('ad-'+id).classList.add('active');btn.classList.add('active');if(id==='references'&&REFERENCES.length===0)loadReferences();}
+function switchAdSub(id,btn){document.querySelectorAll('.ad-sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.ad-sub-content').forEach(c=>c.classList.remove('active'));document.getElementById('ad-'+id).classList.add('active');btn.classList.add('active');if(id==='references'&&REFERENCES.length===0)loadReferences();if(id==='campaigns'&&!window._campaignsLoaded)loadCampaigns();}
+let _campaignsLoaded=false;
+async function loadCampaigns(){
+  try{
+    const res=await fetch(API+'/api/campaigns');
+    const data=await res.json();
+    const tb=document.getElementById('campaigns-body');
+    if(!data.length){tb.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted)">캠페인 데이터 없음</td></tr>';window._campaignsLoaded=true;return;}
+    tb.innerHTML=data.map(c=>'<tr><td>'+esc(c.name||'-')+'</td><td>'+(c.status||'-')+'</td><td>'+(c.objective||'-')+'</td><td>'+(c.start_date||'-')+'</td><td>'+(c.end_date||'-')+'</td><td>'+(c.total_spend?'₩'+Number(c.total_spend).toLocaleString():'-')+'</td><td>'+(c.impressions?Number(c.impressions).toLocaleString():'-')+'</td><td>'+(c.clicks?Number(c.clicks).toLocaleString():'-')+'</td><td>'+(c.ctr?c.ctr+'%':'-')+'</td><td>'+(c.conversions||'-')+'</td><td>'+(c.roas||'-')+'</td></tr>').join('');
+    window._campaignsLoaded=true;
+  }catch(e){console.error('loadCampaigns error',e);}
+}
 
 // const API already declared in Task Management section
 const FUNNEL_STAGES=['ViewContent','CompleteRegistration','InitiateCheckout','Purchase'];
