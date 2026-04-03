@@ -15,6 +15,21 @@ interface AdManagerPageProps {
   onSubTabChange?: (tab: string) => void
 }
 
+
+const STATUS_LABEL: Record<string, string> = {
+  active: '진행 중',
+  paused: '꺼짐',
+  draft: '임시 저장',
+  completed: '완료',
+  deleted: '삭제',
+}
+function statusLabel(s: string) { return STATUS_LABEL[s] || s }
+function statusVariant(s: string): 'default' | 'secondary' | 'destructive' {
+  if (s === 'active') return 'default'
+  if (s === 'paused') return 'destructive'
+  return 'secondary'
+}
+
 export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
   const activeTab = subTab || 'daily'
   const handleTabChange = (v: string) => onSubTabChange?.(v)
@@ -84,7 +99,7 @@ function DailyOverview() {
 function CampaignList() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  useEffect(() => { fetchCampaigns().then(setCampaigns).finally(() => setLoading(false)) }, [])
+  useEffect(() => { fetchCampaigns().then(cs => setCampaigns(cs.filter(c => c.status !== 'deleted'))).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
   if (campaigns.length === 0) return <p className="text-muted-foreground py-4">캠페인 없음</p>
   return (
@@ -107,7 +122,7 @@ function CampaignList() {
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>
-                  <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>
+                  <Badge variant={statusVariant(c.status)}>{statusLabel(c.status)}</Badge>
                 </TableCell>
                 <TableCell>{c.platform ?? '-'}</TableCell>
                 <TableCell className="text-right">₩{(c.budget ?? 0).toLocaleString()}</TableCell>
