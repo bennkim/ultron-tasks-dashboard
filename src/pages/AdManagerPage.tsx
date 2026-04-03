@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { fetchAdMetrics, fetchCampaigns, fetchCreatives, saveUtm } from '@/lib/api'
 import type { AdMetric, Campaign, Creative, UtmParams } from '@/types'
+import { PerformancePage } from './PerformancePage'
 
 interface AdManagerPageProps {
   subTab?: string
@@ -27,11 +28,13 @@ export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
           <TabsTrigger value="campaigns">캠페인</TabsTrigger>
           <TabsTrigger value="creatives">소재 비교</TabsTrigger>
           <TabsTrigger value="utm">UTM 빌더</TabsTrigger>
+          <TabsTrigger value="performance">퍼포먼스</TabsTrigger>
         </TabsList>
         <TabsContent value="daily"><DailyOverview /></TabsContent>
         <TabsContent value="campaigns"><CampaignList /></TabsContent>
         <TabsContent value="creatives"><CreativeGrid /></TabsContent>
         <TabsContent value="utm"><UtmBuilder /></TabsContent>
+        <TabsContent value="performance"><PerformancePage /></TabsContent>
       </Tabs>
     </div>
   )
