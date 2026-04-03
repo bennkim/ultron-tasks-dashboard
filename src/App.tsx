@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
 
-function getPage(tab: string) {
+function getPage(tab: string, onTabChange: (id: string) => void) {
   switch (tab) {
     case 'home':
-      return <HomePage />
+      return <HomePage onTabChange={onTabChange} />
     case 'tasks':
       return <div><h1 className="text-2xl font-semibold mb-2">Tasks</h1><p className="text-muted-foreground">태스크 관리</p></div>
     case 'ad-manager':
@@ -15,7 +15,7 @@ function getPage(tab: string) {
     case 'contents':
       return <div><h1 className="text-2xl font-semibold mb-2">Contents</h1><p className="text-muted-foreground">콘텐츠 관리</p></div>
     default:
-      return <HomePage />
+      return <HomePage onTabChange={onTabChange} />
   }
 }
 
@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <AppLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {getPage(activeTab)}
+      {getPage(activeTab, setActiveTab)}
     </AppLayout>
   )
 }
