@@ -9,11 +9,19 @@ import { Badge } from '@/components/ui/badge'
 import { fetchAdMetrics, fetchCampaigns, fetchCreatives, saveUtm } from '@/lib/api'
 import type { AdMetric, Campaign, Creative, UtmParams } from '@/types'
 
-export function AdManagerPage() {
+interface AdManagerPageProps {
+  subTab?: string
+  onSubTabChange?: (tab: string) => void
+}
+
+export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
+  const activeTab = subTab || 'daily'
+  const handleTabChange = (v: string) => onSubTabChange?.(v)
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">광고 관리</h1>
-      <Tabs defaultValue="daily">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="daily">일별 성과</TabsTrigger>
           <TabsTrigger value="campaigns">캠페인</TabsTrigger>
@@ -34,6 +42,7 @@ function DailyOverview() {
   const [loading, setLoading] = useState(true)
   useEffect(() => { fetchAdMetrics().then(setMetrics).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
+  if (metrics.length === 0) return <p className="text-muted-foreground py-4">데이터 없음</p>
   return (
     <Card>
       <CardHeader><CardTitle>일별 광고 성과</CardTitle></CardHeader>
@@ -74,6 +83,7 @@ function CampaignList() {
   const [loading, setLoading] = useState(true)
   useEffect(() => { fetchCampaigns().then(setCampaigns).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
+  if (campaigns.length === 0) return <p className="text-muted-foreground py-4">캠페인 없음</p>
   return (
     <Card>
       <CardHeader><CardTitle>캠페인 목록</CardTitle></CardHeader>
@@ -83,25 +93,23 @@ function CampaignList() {
             <TableRow>
               <TableHead>이름</TableHead>
               <TableHead>상태</TableHead>
-              <TableHead>목표</TableHead>
-              <TableHead>기간</TableHead>
-              <TableHead className="text-right">비용</TableHead>
-              <TableHead className="text-right">CTR</TableHead>
-              <TableHead className="text-right">전환</TableHead>
-              <TableHead className="text-right">ROAS</TableHead>
+              <TableHead>플랫폼</TableHead>
+              <TableHead className="text-right">예산</TableHead>
+              <TableHead>시작일</TableHead>
+              <TableHead>생성일</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {campaigns.map(c => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell><Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge></TableCell>
-                <TableCell>{c.objective}</TableCell>
-                <TableCell className="text-sm">{c.start_date} ~ {c.end_date}</TableCell>
-                <TableCell className="text-right">₩{c.spend.toLocaleString()}</TableCell>
-                <TableCell className="text-right">{c.ctr.toFixed(2)}%</TableCell>
-                <TableCell className="text-right">{c.conversions}</TableCell>
-                <TableCell className="text-right">{c.roas.toFixed(1)}x</TableCell>
+                <TableCell>
+                  <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>
+                </TableCell>
+                <TableCell>{c.platform ?? '-'}</TableCell>
+                <TableCell className="text-right">₩{(c.budget ?? 0).toLocaleString()}</TableCell>
+                <TableCell>{c.start_date ?? '-'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{c.created_at ?? '-'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -116,23 +124,29 @@ function CreativeGrid() {
   const [loading, setLoading] = useState(true)
   useEffect(() => { fetchCreatives().then(setCreatives).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
+  if (creatives.length === 0) return <p className="text-muted-foreground py-4">소재 없음</p>
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
       {creatives.map(c => (
         <Card key={c.id}>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-base">{c.name}</CardTitle>
-              <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>{c.status}</Badge>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-sm font-medium leading-tight">{c.label}</CardTitle>
+              <Badge variant={c.status === 'approved' || c.status === 'active' ? 'default' : 'secondary'} className="text-xs shrink-0 ml-2">{c.status}</Badge>
             </div>
           </CardHeader>
           <CardContent>
-            {c.thumbnail && <img src={c.thumbnail} alt={c.name} className="w-full h-32 object-cover rounded mb-3" />}
-            {!c.thumbnail && <div className="w-full h-32 bg-muted rounded mb-3 flex items-center justify-center text-muted-foreground text-sm">미리보기 없음</div>}
-            <div className="flex justify-between text-sm">
-              <span>CTR: <strong>{c.ctr.toFixed(2)}%</strong></span>
-              <span>전환: <strong>{c.conversions}</strong></span>
-            </div>
+            {c.image_url ? (
+              <img src={c.image_url} alt={c.label} className="w-full h-40 object-cover rounded mb-3" />
+            ) : (
+              <div className="w-full h-40 bg-muted rounded mb-3 flex items-center justify-center text-muted-foreground text-sm">미리보기 없음</div>
+            )}
+            {c.headline && <p className="text-sm font-medium mb-1">{c.headline}</p>}
+            {c.copy && <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{c.copy}</p>}
+            {c.cta && <p className="text-xs text-primary font-medium">{c.cta}</p>}
+            {c.utm_url && (
+              <a href={c.utm_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline mt-2 block truncate">{c.utm_url}</a>
+            )}
           </CardContent>
         </Card>
       ))}

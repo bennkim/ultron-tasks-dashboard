@@ -87,7 +87,8 @@ export async function fetchCreatives(): Promise<Creative[]> {
     const res = await fetch(`${API}/api/creatives`)
     if (!res.ok) throw new Error('fail')
     const data = await res.json()
-    return Array.isArray(data) ? data : (data.creatives ?? [])
+    const creatives = Array.isArray(data) ? data : (data.creatives ?? [])
+    return creatives.map((c: Record<string, unknown>) => ({ ...c, label: c.label ?? c.name ?? c.key ?? c.id })) as Creative[]
   } catch {
     return MOCK_CREATIVES
   }
@@ -173,14 +174,14 @@ const MOCK_AD_METRICS: AdMetric[] = [
 ]
 
 const MOCK_CAMPAIGNS: Campaign[] = [
-  { id: 'c1', name: '봄 프로모션', status: 'active', objective: 'conversions', start_date: '2026-03-15', end_date: '2026-04-15', spend: 150000, impressions: 45000, clicks: 1200, ctr: 2.67, conversions: 85, roas: 3.8 },
-  { id: 'c2', name: '브랜드 인지도', status: 'paused', objective: 'awareness', start_date: '2026-03-01', end_date: '2026-03-31', spend: 80000, impressions: 120000, clicks: 2400, ctr: 2.0, conversions: 30, roas: 1.5 },
+  { id: 'c1', name: '봄 프로모션', status: 'active', platform: 'Meta', budget: 150000, start_date: '2026-03-15', end_date: '2026-04-15' },
+  { id: 'c2', name: '브랜드 인지도', status: 'paused', platform: 'Meta', budget: 80000, start_date: '2026-03-01', end_date: '2026-03-31' },
 ]
 
 const MOCK_CREATIVES: Creative[] = [
-  { id: 'cr1', name: '봄 배너 A', status: 'active', ctr: 3.2, conversions: 45 },
-  { id: 'cr2', name: '봄 배너 B', status: 'active', ctr: 2.8, conversions: 38 },
-  { id: 'cr3', name: '동영상 광고 1', status: 'paused', ctr: 4.1, conversions: 52 },
+  { id: 'cr1', label: '봄 배너 A', status: 'approved', headline: '봄 맞이 특가', copy: '지금 시작하세요' },
+  { id: 'cr2', label: '봄 배너 B', status: 'approved', headline: '데이터 기반 분석', copy: '성과를 높이세요' },
+  { id: 'cr3', label: '동영상 광고 1', status: 'draft', headline: '영상 콘텐츠', copy: '감성적인 영상 제작' },
 ]
 
 const MOCK_LEADS: Lead[] = [

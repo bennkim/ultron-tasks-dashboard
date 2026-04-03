@@ -113,24 +113,31 @@ export interface Campaign {
   id: string
   name: string
   status: string
-  objective: string
-  start_date: string
-  end_date: string
-  spend: number
-  impressions: number
-  clicks: number
-  ctr: number
-  conversions: number
-  roas: number
+  platform?: string
+  ad_account?: string
+  pixel_id?: string
+  budget: number
+  start_date?: string | null
+  end_date?: string | null
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Creative {
   id: string
-  name: string
+  key?: string
+  label: string
+  campaign_id?: string
+  copy?: string
+  cta?: string
+  headline?: string
+  body_text?: string
   status: string
-  thumbnail?: string
-  ctr: number
-  conversions: number
+  image_url?: string
+  utm_url?: string
+  meta_ad_id?: string
+  tags?: string
+  created_at?: string
 }
 
 export interface UtmParams {

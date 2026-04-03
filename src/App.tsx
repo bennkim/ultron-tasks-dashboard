@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { HomePage } from '@/pages/HomePage'
 import { TasksPage } from '@/pages/TasksPage'
@@ -6,29 +6,49 @@ import { AdManagerPage } from '@/pages/AdManagerPage'
 import { LeadsPage } from '@/pages/LeadsPage'
 import { ContentsPage } from '@/pages/ContentsPage'
 
-function getPage(tab: string, onTabChange: (id: string) => void) {
-  switch (tab) {
-    case 'home':
-      return <HomePage onTabChange={onTabChange} />
-    case 'tasks':
-      return <TasksPage />
-    case 'ad-manager':
-      return <AdManagerPage />
-    case 'leads':
-      return <LeadsPage />
-    case 'contents':
-      return <ContentsPage />
-    default:
-      return <HomePage onTabChange={onTabChange} />
-  }
+function parseHash(): { tab: string; subTab?: string } {
+  const hash = window.location.hash.replace(/^#\/?/, '')
+  const parts = hash.split('/')
+  return { tab: parts[0] || 'home', subTab: parts[1] }
+}
+
+function setHash(tab: string, subTab?: string) {
+  const path = subTab ? `${tab}/${subTab}` : tab
+  window.location.hash = `#/${path}`
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home')
+  const [route, setRoute] = useState(parseHash)
+
+  useEffect(() => {
+    const onHash = () => setRoute(parseHash())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  const handleTabChange = useCallback((tab: string) => {
+    setHash(tab)
+  }, [])
+
+  const handleSubTabChange = useCallback((subTab: string) => {
+    setHash(route.tab, subTab)
+    setRoute(r => ({ ...r, subTab }))
+  }, [route.tab])
+
+  const page = (() => {
+    switch (route.tab) {
+      case 'home': return <HomePage onTabChange={handleTabChange} />
+      case 'tasks': return <TasksPage />
+      case 'ad-manager': return <AdManagerPage subTab={route.subTab} onSubTabChange={handleSubTabChange} />
+      case 'leads': return <LeadsPage />
+      case 'contents': return <ContentsPage />
+      default: return <HomePage onTabChange={handleTabChange} />
+    }
+  })()
 
   return (
-    <AppLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {getPage(activeTab, setActiveTab)}
+    <AppLayout activeTab={route.tab} onTabChange={handleTabChange}>
+      {page}
     </AppLayout>
   )
 }
