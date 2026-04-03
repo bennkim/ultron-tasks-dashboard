@@ -5,6 +5,7 @@ import { TasksPage } from '@/pages/TasksPage'
 import { AdManagerPage } from '@/pages/AdManagerPage'
 import { LeadsPage } from '@/pages/LeadsPage'
 import { ContentsPage } from '@/pages/ContentsPage'
+import { PerformancePage } from '@/pages/PerformancePage'
 
 function parseHash(): { tab: string; subTab?: string } {
   const hash = window.location.hash.replace(/^#\/?/, '')
@@ -42,6 +43,7 @@ export default function App() {
       case 'ad-manager': return <AdManagerPage subTab={route.subTab} onSubTabChange={handleSubTabChange} />
       case 'leads': return <LeadsPage />
       case 'contents': return <ContentsPage />
+      case 'performance': return <PerformancePage />
       default: return <HomePage onTabChange={handleTabChange} />
     }
   })()
