@@ -47,10 +47,25 @@ import type { AdMetric, Campaign, Creative, UtmParams, Lead, ContentRequest, Con
 
 export async function fetchAdMetrics(): Promise<AdMetric[]> {
   try {
-    const res = await fetch(`${API}/api/ad-metrics`)
+    const res = await fetch(`${API}/api/metrics`)
     if (!res.ok) throw new Error('fail')
     const data = await res.json()
-    return Array.isArray(data) ? data : (data.metrics ?? [])
+    const metrics = Array.isArray(data) ? data : (data.metrics ?? [])
+    // Aggregate metrics by date
+    const byDate: Record<string, AdMetric> = {}
+    for (const m of metrics) {
+      const d = m.date ?? 'unknown'
+      if (!byDate[d]) byDate[d] = { date: d, impressions: 0, clicks: 0, ctr: 0, conversions: 0, spend: 0, roas: 0 }
+      byDate[d].impressions += m.impressions ?? 0
+      byDate[d].clicks += m.clicks ?? 0
+      byDate[d].spend += m.spend ?? 0
+      byDate[d].conversions += m.conversions ?? 0
+    }
+    return Object.values(byDate).map(m => ({
+      ...m,
+      ctr: m.impressions ? (m.clicks / m.impressions * 100) : 0,
+      roas: m.spend ? (m.conversions * 10000 / m.spend) : 0,
+    })).sort((a, b) => b.date.localeCompare(a.date))
   } catch {
     return MOCK_AD_METRICS
   }
@@ -90,10 +105,21 @@ export async function saveUtm(params: UtmParams): Promise<void> {
 
 export async function fetchLeads(): Promise<Lead[]> {
   try {
-    const res = await fetch(`${API}/api/leads`)
+    const res = await fetch(`${import.meta.env.BASE_URL}leads.json`)
     if (!res.ok) throw new Error('fail')
-    const data = await res.json()
-    return Array.isArray(data) ? data : (data.leads ?? [])
+    const data: Array<{ id: number; name: string; domain?: string; primary_email?: string; location?: string; size?: string; source?: string; profile?: string; website?: string; emails?: string[] }> = await res.json()
+    return data.map(d => ({
+      id: String(d.id),
+      agency: d.name,
+      domain: d.domain ?? '',
+      email: d.primary_email ?? '',
+      region: d.location ?? '',
+      size: d.size ?? '',
+      clutch_score: 0,
+      profile: d.profile ?? '',
+      website: d.website ?? '',
+      emails: d.emails ?? [],
+    }))
   } catch {
     return MOCK_LEADS
   }
