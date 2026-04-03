@@ -426,6 +426,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <button class="ad-sub-tab" onclick="switchAdSub('funnel',this)">🔻 퍼널 분석</button>
   <button class="ad-sub-tab" onclick="switchAdSub('utm',this)">🔗 UTM 빌더</button>
   <button class="ad-sub-tab" onclick="switchAdSub('references',this)">🔖 레퍼런스</button>
+  <button class="ad-sub-tab" onclick="switchAdSub('campaigns',this)">🏢 캠페인 관리</button>
 </div>
 
 <div id="ad-overview" class="ad-sub-content active">
@@ -492,6 +493,21 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
   <div id="references-container" style="font-size:.85rem">
     <p style="color:var(--muted)">로딩 중...</p>
+  </div>
+</div>
+</div>
+
+<div id="ad-campaigns" class="ad-sub-content">
+<div class="panel" style="margin-bottom:16px">
+  <h3 style="margin-bottom:12px">🏢 캠페인 관리</h3>
+  <div id="campaign-tree" style="font-size:.85rem">
+    <p style="color:var(--muted)">로딩 중...</p>
+  </div>
+</div>
+<div class="panel">
+  <h3 style="margin-bottom:12px">⚡ Kill / Scale 판단</h3>
+  <div id="killscale-container" style="font-size:.85rem">
+    <p style="color:var(--muted)">데이터 로딩 후 자동 분석됩니다.</p>
   </div>
 </div>
 </div>
@@ -923,7 +939,7 @@ async function loadAdData(){
       fetch(API+'/api/utm').then(r=>r.json()),
     ]);
     STATE.campaigns=camRes.campaigns||[];STATE.creatives=crRes.creatives||[];STATE.metrics=metRes.metrics||[];STATE.funnel=funRes.funnel||[];STATE.utm=utmRes.links||[];
-    renderHomeAdKPI();renderKPIs();renderDailyOverview();renderCreativeTotals();renderCreativeDaily();renderFunnel();renderUTM();
+    renderHomeAdKPI();renderKPIs();renderDailyOverview();renderCreativeTotals();renderCreativeDaily();renderFunnel();renderUTM();renderCampaignTree();renderKillScale();
     document.getElementById('ad-loading').style.display='none';
     document.getElementById('ad-content').style.display='block';
   }catch(e){
@@ -1009,6 +1025,87 @@ function renderFunnel(){
     tableHTML+='<td class="num conv">'+fmtWon(rev)+'</td><td class="num" style="color:'+roasColor(spend>0?rev/spend:0)+'">'+(spend>0?(rev/spend).toFixed(2)+'x':'—')+'</td></tr>';
   });
   document.getElementById('funnel-table-body').innerHTML=tableHTML;
+}
+function renderCampaignTree(){
+  const el=document.getElementById('campaign-tree');
+  if(!STATE.campaigns.length){el.innerHTML='<p style="color:var(--muted)">등록된 캠페인이 없습니다.</p>';return;}
+  let html='';
+  STATE.campaigns.forEach(cam=>{
+    const creatives=STATE.creatives.filter(c=>c.campaign_id===cam.id);
+    const totalSpend=creatives.reduce((s,c)=>{
+      return s+STATE.metrics.filter(m=>m.creative_id===c.key).reduce((ss,m)=>ss+m.spend,0);
+    },0);
+    const totalImp=creatives.reduce((s,c)=>{
+      return s+STATE.metrics.filter(m=>m.creative_id===c.key).reduce((ss,m)=>ss+m.impressions,0);
+    },0);
+    html+='<div style="background:var(--blue-light);border-radius:12px;padding:16px;margin-bottom:12px">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    html+='<div><strong style="font-size:1rem">📢 '+cam.name+'</strong>';
+    html+='<div style="color:var(--muted);font-size:.75rem;margin-top:4px">'+cam.platform+' | '+(cam.ad_account||'—')+' | 시작: '+(cam.start_date||'—')+'</div></div>';
+    html+='<span class="tag '+(cam.status==='active'?'tag-active':'tag-draft')+'">'+cam.status+'</span></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
+    html+='<div style="text-align:center"><div style="font-size:1.1rem;font-weight:700">'+fmtWon(cam.budget||0)+'</div><div style="font-size:.7rem;color:var(--muted)">일예산</div></div>';
+    html+='<div style="text-align:center"><div style="font-size:1.1rem;font-weight:700">'+fmtWon(totalSpend)+'</div><div style="font-size:.7rem;color:var(--muted)">총 지출</div></div>';
+    html+='<div style="text-align:center"><div style="font-size:1.1rem;font-weight:700">'+fmt(totalImp)+'</div><div style="font-size:.7rem;color:var(--muted)">총 노출</div></div></div>';
+    // Creatives tree
+    html+='<div style="border-top:1px solid var(--border);padding-top:10px">';
+    creatives.forEach(c=>{
+      const rows=STATE.metrics.filter(m=>m.creative_id===c.key);
+      const spend=rows.reduce((s,r)=>s+r.spend,0);
+      const imp=rows.reduce((s,r)=>s+r.impressions,0);
+      const clicks=rows.reduce((s,r)=>s+r.clicks,0);
+      const ctr=imp>0?(clicks/imp*100):0;
+      const latestDate=rows.length?rows.sort((a,b)=>b.date.localeCompare(a.date))[0].date:'—';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin:4px 0;background:var(--card);border-radius:8px;border:1px solid var(--border)">';
+      html+='<div>├ <strong>'+c.label+'</strong> <span style="color:var(--muted);font-size:.75rem">('+c.key+')</span></div>';
+      html+='<div style="display:flex;gap:16px;font-size:.8rem">';
+      html+='<span>'+fmtWon(spend)+'</span>';
+      html+='<span>'+fmt(imp)+' 노출</span>';
+      html+='<span>CTR '+ctr.toFixed(1)+'%</span>';
+      html+='<span style="color:var(--muted)">최근: '+latestDate+'</span>';
+      html+='</div></div>';
+    });
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
+}
+function renderKillScale(){
+  const el=document.getElementById('killscale-container');
+  if(!STATE.creatives.length||!STATE.metrics.length){el.innerHTML='<p style="color:var(--muted)">데이터가 충분하지 않습니다.</p>';return;}
+  // Calculate days_active from earliest metric date
+  const today=new Date().toISOString().split('T')[0];
+  let html='<table class="data-table" style="font-size:.82rem"><thead><tr><th>광고</th><th>D+</th><th>지출</th><th>CTR</th><th>CPC</th><th>ROAS</th><th>빈도</th><th>판정</th></tr></thead><tbody>';
+  STATE.creatives.forEach(c=>{
+    const rows=STATE.metrics.filter(m=>m.creative_id===c.key);
+    if(!rows.length)return;
+    const dates=rows.map(r=>r.date).sort();
+    const firstDate=dates[0];
+    const days=Math.floor((new Date(today)-new Date(firstDate))/(1000*60*60*24));
+    const spend=rows.reduce((s,r)=>s+r.spend,0);
+    const imp=rows.reduce((s,r)=>s+r.impressions,0);
+    const clicks=rows.reduce((s,r)=>s+r.clicks,0);
+    const ctr=imp>0?(clicks/imp*100):0;
+    const cpc=clicks>0?Math.round(spend/clicks):0;
+    const freq=rows.length?rows[rows.length-1].frequency:0;
+    const metricIds=rows.map(r=>r.id);
+    const rev=STATE.funnel.filter(f=>f.stage==='Purchase'&&metricIds.includes(f.daily_metric_id)).reduce((s,f)=>s+f.revenue,0);
+    const roas=spend>0?(rev/spend):0;
+    // Kill/Scale logic
+    let verdict='🟡 유지',vColor='var(--yellow)';
+    if(days<3){verdict='⏳ 학습중 (D+'+days+')';vColor='var(--muted)';}
+    else if(roas>=3){verdict='🟢 Scale';vColor='var(--green)';}
+    else if((roas>0&&roas<1.5)||(ctr>0&&ctr<0.8)||freq>3.5){
+      const reasons=[];
+      if(roas>0&&roas<1.5)reasons.push('ROAS↓');
+      if(ctr>0&&ctr<0.8)reasons.push('CTR↓');
+      if(freq>3.5)reasons.push('빈도↑');
+      verdict='🔴 Kill ('+reasons.join('/')+')';vColor='var(--red)';
+    }
+    html+='<tr><td><strong>'+c.label+'</strong></td><td>D+'+days+'</td><td class="num">'+fmtWon(spend)+'</td><td class="num">'+ctr.toFixed(1)+'%</td><td class="num">'+fmtWon(cpc)+'</td><td class="num" style="color:'+roasColor(roas)+'">'+roas.toFixed(2)+'x</td><td class="num">'+freq.toFixed(1)+'</td><td style="color:'+vColor+';font-weight:600">'+verdict+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  html+='<div style="margin-top:12px;padding:10px;background:var(--blue-light);border-radius:8px;font-size:.78rem;color:var(--muted)"><strong>기준:</strong> Kill — D+3 이상 & (ROAS&lt;1.5 or CTR&lt;0.8% or 빈도&gt;3.5) | Scale — D+3 이상 & ROAS≥3.0</div>';
+  el.innerHTML=html;
 }
 function renderUTM(){
   const sel=document.getElementById('utm-content');
