@@ -36,6 +36,27 @@ export async function fetchTaskDetail(id: string): Promise<TaskDetailResponse> {
   return { task: data.task, history, story: data.story, epic: data.epic }
 }
 
+export async function updateEpic(id: string, fields: Partial<Epic>): Promise<void> {
+  const res = await fetch(`${API}/api/epics/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+  })
+  if (!res.ok) throw new Error(`Epic update failed: ${res.status}`)
+}
+
+export async function updateStory(id: string, fields: Partial<Story>): Promise<void> {
+  const res = await fetch(`${API}/api/stories/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+  })
+  if (!res.ok) throw new Error(`Story update failed: ${res.status}`)
+}
+
+export async function updateTask(id: string, fields: Record<string, unknown>): Promise<void> {
+  const res = await fetch(`${API}/api/tasks/${encodeURIComponent(id)}`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fields),
+  })
+  if (!res.ok) throw new Error(`Task update failed: ${res.status}`)
+}
+
 export async function fetchSystemStatus(): Promise<SystemStatus> {
   const res = await fetch(`${API}/api/system-status`)
   if (!res.ok) throw new Error(`System status fetch failed: ${res.status}`)

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { fetchEpics, fetchStories, fetchTasks, fetchTaskDetail } from '@/lib/api'
+import { fetchEpics, fetchStories, fetchTasks, fetchTaskDetail, updateEpic, updateStory, updateTask } from '@/lib/api'
 import { Epic, Story, Task, TaskDetailResponse } from '@/types'
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
@@ -92,15 +92,38 @@ const SUB_TABS: { id: SubTab; label: string }[] = [
 // ═══════════════════════════════════════════════════════════════════════════════
 type EpicSortKey = 'id' | 'title' | 'status' | 'priority' | 'owner' | 'created_at'
 
-function EpicDetailModal({ epic, stories, tasks, open, onClose }: {
-  epic: Epic | null; stories: Story[]; tasks: Task[]; open: boolean; onClose: () => void
+function EpicDetailModal({ epic, stories, tasks, open, onClose, onUpdated }: {
+  epic: Epic | null; stories: Story[]; tasks: Task[]; open: boolean; onClose: () => void; onUpdated?: () => void
 }) {
+  const [notes, setNotes] = useState('')
+  const [context, setContext] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [dirty, setDirty] = useState(false)
+
+  useEffect(() => {
+    if (epic) {
+      setNotes(epic.notes ?? '')
+      setContext(epic.context ?? '')
+      setDirty(false)
+    }
+  }, [epic])
+
   if (!epic) return null
   const epicStories = stories.filter(s => s.epic_id === epic.id)
   const epicTasks = tasks.filter(t => t.epic_id === epic.id || epicStories.some(s => s.id === t.story_id))
   const done = epicTasks.filter(t => t.status === 'DONE').length
   const pct = epicTasks.length > 0 ? Math.round((done / epicTasks.length) * 100) : 0
   const statusCls = STATUS_CLASS[epic.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await updateEpic(epic.id, { notes, context })
+      setDirty(false)
+      onUpdated?.()
+    } catch (e) { console.error(e) }
+    finally { setSaving(false) }
+  }
 
   function Field({ label, value, full }: { label: string; value?: string | null; full?: boolean }) {
     if (!value) return null
@@ -139,9 +162,42 @@ function EpicDetailModal({ epic, stories, tasks, open, onClose }: {
             <Field label="담당 (Owner)" value={epic.owner} />
             <Field label="생성일" value={epic.created_at?.slice(0, 16)} />
             <Field label="수정일" value={epic.updated_at?.slice(0, 16)} />
-            <Field label="📝 노트" value={epic.notes} full />
-            <Field label="📋 컨텍스트" value={epic.context} full />
           </div>
+
+          {/* Editable notes */}
+          <div>
+            <div className="text-sm font-semibold mb-1">📝 노트 <span className="text-xs text-muted-foreground font-normal">(마크다운 지원)</span></div>
+            <textarea
+              className="w-full min-h-[120px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+              placeholder="배경, 의사결정 이력, 로드맵 등..."
+              value={notes}
+              onChange={(e) => { setNotes(e.target.value); setDirty(true) }}
+            />
+          </div>
+
+          {/* Editable context */}
+          <div>
+            <div className="text-sm font-semibold mb-1">📋 컨텍스트 <span className="text-xs text-muted-foreground font-normal">(관련 링크, 의존성, 참조)</span></div>
+            <textarea
+              className="w-full min-h-[80px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+              placeholder="관련 링크, 파일 경로, 의존성..."
+              value={context}
+              onChange={(e) => { setContext(e.target.value); setDirty(true) }}
+            />
+          </div>
+
+          {dirty && (
+            <div className="flex justify-end">
+              <button
+                className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? '저장 중...' : '💾 저장'}
+              </button>
+            </div>
+          )}
+
           <div>
             <div className="text-sm font-semibold mb-2">스토리 ({epicStories.length}개)</div>
             {epicStories.length === 0 ? (
@@ -172,14 +228,37 @@ function EpicDetailModal({ epic, stories, tasks, open, onClose }: {
   )
 }
 
-function StoryDetailModal({ story, epic, tasks, open, onClose }: {
-  story: Story | null; epic?: Epic; tasks: Task[]; open: boolean; onClose: () => void
+function StoryDetailModal({ story, epic, tasks, open, onClose, onUpdated }: {
+  story: Story | null; epic?: Epic; tasks: Task[]; open: boolean; onClose: () => void; onUpdated?: () => void
 }) {
+  const [notes, setNotes] = useState('')
+  const [context, setContext] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [dirty, setDirty] = useState(false)
+
+  useEffect(() => {
+    if (story) {
+      setNotes(story.notes ?? '')
+      setContext(story.context ?? '')
+      setDirty(false)
+    }
+  }, [story])
+
   if (!story) return null
   const storyTasks = tasks.filter(t => t.story_id === story.id)
   const done = storyTasks.filter(t => t.status === 'DONE').length
   const pct = storyTasks.length > 0 ? Math.round((done / storyTasks.length) * 100) : 0
   const statusCls = STATUS_CLASS[story.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await updateStory(story.id, { notes, context })
+      setDirty(false)
+      onUpdated?.()
+    } catch (e) { console.error(e) }
+    finally { setSaving(false) }
+  }
 
   function Field({ label, value, full }: { label: string; value?: string | null; full?: boolean }) {
     if (!value) return null
@@ -217,9 +296,40 @@ function StoryDetailModal({ story, epic, tasks, open, onClose }: {
             <Field label="담당 (Owner)" value={story.owner} />
             <Field label="생성일" value={story.created_at?.slice(0, 16)} />
             <Field label="수정일" value={story.updated_at?.slice(0, 16)} />
-            <Field label="📝 노트" value={story.notes} full />
-            <Field label="📋 컨텍스트" value={story.context} full />
           </div>
+
+          <div>
+            <div className="text-sm font-semibold mb-1">📝 노트 <span className="text-xs text-muted-foreground font-normal">(마크다운 지원)</span></div>
+            <textarea
+              className="w-full min-h-[100px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+              placeholder="배경, 목적, 의사결정..."
+              value={notes}
+              onChange={(e) => { setNotes(e.target.value); setDirty(true) }}
+            />
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold mb-1">📋 컨텍스트 <span className="text-xs text-muted-foreground font-normal">(관련 링크, 의존성)</span></div>
+            <textarea
+              className="w-full min-h-[60px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+              placeholder="관련 링크, 파일, 의존성..."
+              value={context}
+              onChange={(e) => { setContext(e.target.value); setDirty(true) }}
+            />
+          </div>
+
+          {dirty && (
+            <div className="flex justify-end">
+              <button
+                className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? '저장 중...' : '💾 저장'}
+              </button>
+            </div>
+          )}
+
           <div>
             <div className="text-sm font-semibold mb-2">태스크 ({storyTasks.length}개)</div>
             {storyTasks.length === 0 ? (
@@ -607,17 +717,37 @@ function TaskDetailModal({
   const [detail, setDetail] = useState<TaskDetailResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [taskNotes, setTaskNotes] = useState('')
+  const [taskContext, setTaskContext] = useState('')
+  const [taskDirty, setTaskDirty] = useState(false)
+  const [taskSaving, setTaskSaving] = useState(false)
 
   useEffect(() => {
     if (!taskId || !open) return
     setLoading(true)
     setDetail(null)
     setError(null)
+    setTaskDirty(false)
     fetchTaskDetail(taskId)
-      .then(d => { setDetail(d); markRead(taskId) })
+      .then(d => {
+        setDetail(d)
+        markRead(taskId)
+        setTaskNotes(d.task.notes ?? '')
+        setTaskContext(d.task.context ?? '')
+      })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [taskId, open])
+
+  const handleTaskSave = async () => {
+    if (!taskId) return
+    setTaskSaving(true)
+    try {
+      await updateTask(taskId, { notes: taskNotes, context: taskContext })
+      setTaskDirty(false)
+    } catch (e) { console.error(e) }
+    finally { setTaskSaving(false) }
+  }
 
   const t = detail?.task
 
@@ -691,11 +821,41 @@ function TaskDetailModal({
                 </div>
               )}
               <Field label="✅ 완료 조건" value={t.completion_criteria} full />
-              <Field label="📝 메모" value={t.notes} full />
               {t.description && t.description !== t.title && (
                 <Field label="상세 설명" value={t.description} full />
               )}
             </div>
+
+            {/* Editable notes/context */}
+            <div>
+              <div className="text-sm font-semibold mb-1">📝 노트 <span className="text-xs text-muted-foreground font-normal">(마크다운 지원)</span></div>
+              <textarea
+                className="w-full min-h-[100px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+                placeholder="배경, 의사결정, 메모..."
+                value={taskNotes}
+                onChange={(e) => { setTaskNotes(e.target.value); setTaskDirty(true) }}
+              />
+            </div>
+            <div>
+              <div className="text-sm font-semibold mb-1">📋 컨텍스트 <span className="text-xs text-muted-foreground font-normal">(관련 링크, 의존성)</span></div>
+              <textarea
+                className="w-full min-h-[60px] text-sm border rounded-lg p-2 bg-background resize-y font-mono"
+                placeholder="관련 링크, 커밋, 의존성..."
+                value={taskContext}
+                onChange={(e) => { setTaskContext(e.target.value); setTaskDirty(true) }}
+              />
+            </div>
+            {taskDirty && (
+              <div className="flex justify-end">
+                <button
+                  className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                  onClick={handleTaskSave}
+                  disabled={taskSaving}
+                >
+                  {taskSaving ? '저장 중...' : '💾 저장'}
+                </button>
+              </div>
+            )}
 
             <div>
               <div className="text-sm font-semibold mb-2">히스토리</div>

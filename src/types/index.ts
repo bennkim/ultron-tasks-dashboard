@@ -58,6 +58,7 @@ export interface TaskDetail extends Task {
   related_commit?: string
   completion_criteria?: string
   notes?: string
+  context?: string
 }
 
 export interface TaskDetailResponse {
