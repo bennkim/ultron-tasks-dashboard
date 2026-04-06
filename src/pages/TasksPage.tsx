@@ -468,12 +468,13 @@ function TaskRow({
 
 // ─── Story section ────────────────────────────────────────────────────────────
 function StorySection({
-  story, ownerFilter, latestDates, onOpen,
+  story, ownerFilter, latestDates, onOpen, onOpenStory,
 }: {
   story: Story
   ownerFilter: string
   latestDates: Record<string, string>
   onOpen: (id: string) => void
+  onOpenStory: (s: Story) => void
 }) {
   const [open, setOpen] = useState(true)
   const tasks = (story.tasks ?? []).filter(t =>
@@ -487,18 +488,25 @@ function StorySection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="mb-1">
-      <CollapsibleTrigger className="w-full flex items-center gap-2 px-3 py-2 bg-muted/20 hover:bg-muted/40 rounded text-sm text-left transition-colors group">
-        <span className={`transition-transform duration-200 text-muted-foreground text-xs ${open ? 'rotate-90' : ''}`}>▶</span>
-        <span className="font-mono text-xs text-muted-foreground">{story.id}</span>
-        <span className="font-medium flex-1 truncate">{story.title}</span>
-        <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${statusCls}`}>
-          {STATUS_EMOJI[story.status] ?? ''} {story.status}
-        </span>
-        <span className="text-xs text-muted-foreground">{done}/{tasks.length}</span>
-        <div className="w-16 hidden sm:block">
-          <Progress value={pct} className="h-1" />
-        </div>
-      </CollapsibleTrigger>
+      <div className="flex items-center bg-muted/20 hover:bg-muted/40 rounded transition-colors">
+        <CollapsibleTrigger className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-left group">
+          <span className={`transition-transform duration-200 text-muted-foreground text-xs ${open ? 'rotate-90' : ''}`}>▶</span>
+          <span className="font-mono text-xs text-muted-foreground">{story.id}</span>
+          <span className="font-medium flex-1 truncate">{story.title}</span>
+          <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${statusCls}`}>
+            {STATUS_EMOJI[story.status] ?? ''} {story.status}
+          </span>
+          <span className="text-xs text-muted-foreground">{done}/{tasks.length}</span>
+          <div className="w-16 hidden sm:block">
+            <Progress value={pct} className="h-1" />
+          </div>
+        </CollapsibleTrigger>
+        <button
+          className="px-1.5 py-0.5 mr-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+          title="상세 보기"
+          onClick={(e) => { e.stopPropagation(); onOpenStory(story) }}
+        >📋</button>
+      </div>
       <CollapsibleContent>
         <div className="overflow-x-auto">
           <table className="w-full text-sm mt-0.5">
@@ -526,12 +534,14 @@ function StorySection({
 
 // ─── Epic section ────────────────────────────────────────────────────────────
 function EpicSection({
-  epic, ownerFilter, latestDates, onOpen,
+  epic, ownerFilter, latestDates, onOpen, onOpenEpic, onOpenStory,
 }: {
   epic: Epic
   ownerFilter: string
   latestDates: Record<string, string>
   onOpen: (id: string) => void
+  onOpenEpic: (e: Epic) => void
+  onOpenStory: (s: Story) => void
 }) {
   const [open, setOpen] = useState(true)
   const allTasks = (epic.stories ?? []).flatMap(s => s.tasks ?? [])
@@ -545,22 +555,29 @@ function EpicSection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border border-border rounded-lg overflow-hidden mb-3">
-      <CollapsibleTrigger className="w-full flex items-center gap-2 px-4 py-3 bg-muted/10 hover:bg-muted/20 text-left transition-colors">
-        <span className={`transition-transform duration-200 text-muted-foreground text-xs font-bold ${open ? 'rotate-90' : ''}`}>▶</span>
-        <span className="font-mono text-xs text-muted-foreground">{epic.id}</span>
-        <span className="font-semibold flex-1 truncate">{epic.title}</span>
-        {epic.priority && (
-          <span className="text-sm">{PRIORITY_EMOJI[epic.priority] ?? ''} {epic.priority}</span>
-        )}
-        {epic.status && (
-          <span className="text-xs text-muted-foreground">{epic.status}</span>
-        )}
-        <div className="flex items-center gap-2 shrink-0">
-          <Progress value={pct} className="h-1.5 w-20 hidden sm:block" />
-          <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
-          <span className="text-xs text-muted-foreground">({done}/{allTasks.length})</span>
-        </div>
-      </CollapsibleTrigger>
+      <div className="flex items-center bg-muted/10 hover:bg-muted/20 transition-colors">
+        <CollapsibleTrigger className="flex-1 flex items-center gap-2 px-4 py-3 text-left">
+          <span className={`transition-transform duration-200 text-muted-foreground text-xs font-bold ${open ? 'rotate-90' : ''}`}>▶</span>
+          <span className="font-mono text-xs text-muted-foreground">{epic.id}</span>
+          <span className="font-semibold flex-1 truncate">{epic.title}</span>
+          {epic.priority && (
+            <span className="text-sm">{PRIORITY_EMOJI[epic.priority] ?? ''} {epic.priority}</span>
+          )}
+          {epic.status && (
+            <span className="text-xs text-muted-foreground">{epic.status}</span>
+          )}
+          <div className="flex items-center gap-2 shrink-0">
+            <Progress value={pct} className="h-1.5 w-20 hidden sm:block" />
+            <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
+            <span className="text-xs text-muted-foreground">({done}/{allTasks.length})</span>
+          </div>
+        </CollapsibleTrigger>
+        <button
+          className="px-2 py-1 mr-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+          title="상세 보기"
+          onClick={(e) => { e.stopPropagation(); onOpenEpic(epic) }}
+        >📋</button>
+      </div>
       <CollapsibleContent>
         <div className="p-2 space-y-1">
           {(epic.stories ?? []).map(s => (
@@ -570,6 +587,7 @@ function EpicSection({
               ownerFilter={ownerFilter}
               latestDates={latestDates}
               onOpen={onOpen}
+              onOpenStory={onOpenStory}
             />
           ))}
         </div>
@@ -884,6 +902,8 @@ export function TasksPage() {
                 ownerFilter={ownerFilter}
                 latestDates={latestDates}
                 onOpen={openModal}
+                onOpenEpic={(e) => { setSelectedEpic(e); setEpicModalOpen(true) }}
+                onOpenStory={(s) => { setSelectedStory(s); setStoryModalOpen(true) }}
               />
             ))
           )}
