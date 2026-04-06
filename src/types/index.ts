@@ -22,6 +22,8 @@ export interface Story {
   status: TaskStatus
   epic_id?: string
   owner?: string
+  notes?: string
+  context?: string
   created_at?: string
   updated_at?: string
   tasks?: Task[]
@@ -34,6 +36,8 @@ export interface Epic {
   priority?: string
   owner?: string
   goal?: string
+  notes?: string
+  context?: string
   created_at?: string
   updated_at?: string
   stories?: Story[]

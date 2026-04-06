@@ -92,8 +92,164 @@ const SUB_TABS: { id: SubTab; label: string }[] = [
 // ═══════════════════════════════════════════════════════════════════════════════
 type EpicSortKey = 'id' | 'title' | 'status' | 'priority' | 'owner' | 'created_at'
 
-function EpicsTable({ epics, allStories, allTasks }: {
-  epics: Epic[]; allStories: Story[]; allTasks: Task[]
+function EpicDetailModal({ epic, stories, tasks, open, onClose }: {
+  epic: Epic | null; stories: Story[]; tasks: Task[]; open: boolean; onClose: () => void
+}) {
+  if (!epic) return null
+  const epicStories = stories.filter(s => s.epic_id === epic.id)
+  const epicTasks = tasks.filter(t => t.epic_id === epic.id || epicStories.some(s => s.id === t.story_id))
+  const done = epicTasks.filter(t => t.status === 'DONE').length
+  const pct = epicTasks.length > 0 ? Math.round((done / epicTasks.length) * 100) : 0
+  const statusCls = STATUS_CLASS[epic.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+
+  function Field({ label, value, full }: { label: string; value?: string | null; full?: boolean }) {
+    if (!value) return null
+    return (
+      <div className={full ? 'col-span-2' : ''}>
+        <div className="text-xs text-muted-foreground mb-0.5">{label}</div>
+        <div className="text-sm break-words whitespace-pre-wrap">{value}</div>
+      </div>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v: boolean) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold pr-8">
+            {epic.id} — {epic.title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${statusCls}`}>
+              {STATUS_EMOJI[epic.status ?? 'TODO'] ?? ''} {epic.status ?? 'TODO'}
+            </span>
+            {epic.priority && (
+              <span className="text-xs px-2 py-1 rounded bg-muted font-medium">
+                {PRIORITY_EMOJI[epic.priority] ?? ''} {epic.priority}
+              </span>
+            )}
+            <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
+              {done}/{epicTasks.length} 완료 ({pct}%)
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm border rounded-lg p-3 bg-muted/10">
+            <Field label="목표 (Goal)" value={epic.goal} full />
+            <Field label="담당 (Owner)" value={epic.owner} />
+            <Field label="생성일" value={epic.created_at?.slice(0, 16)} />
+            <Field label="수정일" value={epic.updated_at?.slice(0, 16)} />
+            <Field label="📝 노트" value={epic.notes} full />
+            <Field label="📋 컨텍스트" value={epic.context} full />
+          </div>
+          <div>
+            <div className="text-sm font-semibold mb-2">스토리 ({epicStories.length}개)</div>
+            {epicStories.length === 0 ? (
+              <p className="text-sm text-muted-foreground">스토리 없음</p>
+            ) : (
+              <div className="space-y-1">
+                {epicStories.map(s => {
+                  const sTasks = tasks.filter(t => t.story_id === s.id)
+                  const sDone = sTasks.filter(t => t.status === 'DONE').length
+                  const sCls = STATUS_CLASS[s.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+                  return (
+                    <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 rounded bg-muted/20 text-sm">
+                      <span className="font-mono text-xs text-muted-foreground">{s.id}</span>
+                      <span className="flex-1 truncate">{s.title}</span>
+                      <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${sCls}`}>
+                        {STATUS_EMOJI[s.status ?? 'TODO'] ?? ''} {s.status}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{sDone}/{sTasks.length}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function StoryDetailModal({ story, epic, tasks, open, onClose }: {
+  story: Story | null; epic?: Epic; tasks: Task[]; open: boolean; onClose: () => void
+}) {
+  if (!story) return null
+  const storyTasks = tasks.filter(t => t.story_id === story.id)
+  const done = storyTasks.filter(t => t.status === 'DONE').length
+  const pct = storyTasks.length > 0 ? Math.round((done / storyTasks.length) * 100) : 0
+  const statusCls = STATUS_CLASS[story.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+
+  function Field({ label, value, full }: { label: string; value?: string | null; full?: boolean }) {
+    if (!value) return null
+    return (
+      <div className={full ? 'col-span-2' : ''}>
+        <div className="text-xs text-muted-foreground mb-0.5">{label}</div>
+        <div className="text-sm break-words whitespace-pre-wrap">{value}</div>
+      </div>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v: boolean) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold pr-8">
+            {story.id} — {story.title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${statusCls}`}>
+              {STATUS_EMOJI[story.status ?? 'TODO'] ?? ''} {story.status ?? 'TODO'}
+            </span>
+            {epic && (
+              <span className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                {epic.id} {epic.title}
+              </span>
+            )}
+            <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
+              {done}/{storyTasks.length} 완료 ({pct}%)
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm border rounded-lg p-3 bg-muted/10">
+            <Field label="담당 (Owner)" value={story.owner} />
+            <Field label="생성일" value={story.created_at?.slice(0, 16)} />
+            <Field label="수정일" value={story.updated_at?.slice(0, 16)} />
+            <Field label="📝 노트" value={story.notes} full />
+            <Field label="📋 컨텍스트" value={story.context} full />
+          </div>
+          <div>
+            <div className="text-sm font-semibold mb-2">태스크 ({storyTasks.length}개)</div>
+            {storyTasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground">태스크 없음</p>
+            ) : (
+              <div className="space-y-1">
+                {storyTasks.map(t => {
+                  const tCls = STATUS_CLASS[t.status] ?? STATUS_CLASS.TODO
+                  return (
+                    <div key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded bg-muted/20 text-sm">
+                      <span className="font-mono text-xs text-muted-foreground">{t.id}</span>
+                      <span className="flex-1 truncate">{t.title}</span>
+                      <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${tCls}`}>
+                        {STATUS_EMOJI[t.status] ?? ''} {t.status}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{t.owner ?? '—'}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EpicsTable({ epics, allStories, allTasks, onSelectEpic }: {
+  epics: Epic[]; allStories: Story[]; allTasks: Task[]; onSelectEpic: (e: Epic) => void
 }) {
   const [sort, setSort] = useState<SortState<EpicSortKey>>({ key: 'priority', dir: 'asc' })
 
@@ -145,7 +301,7 @@ function EpicsTable({ epics, allStories, allTasks }: {
             const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0
             const statusCls = STATUS_CLASS[e.status ?? 'TODO'] ?? STATUS_CLASS.TODO
             return (
-              <tr key={e.id} className="hover:bg-muted/30 text-sm transition-colors">
+              <tr key={e.id} className="hover:bg-muted/30 text-sm transition-colors cursor-pointer" onClick={() => onSelectEpic(e)}>
                 <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{e.id}</td>
                 <td className="py-2 px-2 font-medium">{e.title}</td>
                 <td className="py-2 px-2">
@@ -180,8 +336,8 @@ function EpicsTable({ epics, allStories, allTasks }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 type StorySortKey = 'id' | 'title' | 'status' | 'epic_id' | 'owner' | 'created_at'
 
-function StoriesTable({ stories, allTasks, epics }: {
-  stories: Story[]; allTasks: Task[]; epics: Epic[]
+function StoriesTable({ stories, allTasks, epics, onSelectStory }: {
+  stories: Story[]; allTasks: Task[]; epics: Epic[]; onSelectStory: (s: Story) => void
 }) {
   const [sort, setSort] = useState<SortState<StorySortKey>>({ key: 'epic_id', dir: 'asc' })
 
@@ -233,7 +389,7 @@ function StoriesTable({ stories, allTasks, epics }: {
             const statusCls = STATUS_CLASS[s.status ?? 'TODO'] ?? STATUS_CLASS.TODO
             const epic = epicMap[s.epic_id ?? '']
             return (
-              <tr key={s.id} className="hover:bg-muted/30 text-sm transition-colors">
+              <tr key={s.id} className="hover:bg-muted/30 text-sm transition-colors cursor-pointer" onClick={() => onSelectStory(s)}>
                 <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{s.id}</td>
                 <td className="py-2 px-2 font-medium">{s.title}</td>
                 <td className="py-2 px-2 text-xs">
@@ -580,6 +736,10 @@ export function TasksPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [latestDates, setLatestDates] = useState<Record<string, string>>({})
   const [subTab, setSubTab] = useState<SubTab>('overview')
+  const [selectedEpic, setSelectedEpic] = useState<Epic | null>(null)
+  const [epicModalOpen, setEpicModalOpen] = useState(false)
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null)
+  const [storyModalOpen, setStoryModalOpen] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -681,7 +841,7 @@ export function TasksPage() {
             <h2 className="text-lg font-semibold">🎯 에픽 목록</h2>
             <span className="text-sm text-muted-foreground">{rawEpics.length}개</span>
           </div>
-          <EpicsTable epics={rawEpics} allStories={rawStories} allTasks={rawTasks} />
+          <EpicsTable epics={rawEpics} allStories={rawStories} allTasks={rawTasks} onSelectEpic={(e) => { setSelectedEpic(e); setEpicModalOpen(true) }} />
         </div>
       )}
 
@@ -692,7 +852,7 @@ export function TasksPage() {
             <h2 className="text-lg font-semibold">📖 스토리 목록</h2>
             <span className="text-sm text-muted-foreground">{rawStories.length}개</span>
           </div>
-          <StoriesTable stories={rawStories} allTasks={rawTasks} epics={rawEpics} />
+          <StoriesTable stories={rawStories} allTasks={rawTasks} epics={rawEpics} onSelectStory={(s) => { setSelectedStory(s); setStoryModalOpen(true) }} />
         </div>
       )}
 
@@ -732,6 +892,24 @@ export function TasksPage() {
 
       {/* Task Detail Modal */}
       <TaskDetailModal taskId={selectedTaskId} open={modalOpen} onClose={closeModal} />
+
+      {/* Epic Detail Modal */}
+      <EpicDetailModal
+        epic={selectedEpic}
+        stories={rawStories}
+        tasks={rawTasks}
+        open={epicModalOpen}
+        onClose={() => setEpicModalOpen(false)}
+      />
+
+      {/* Story Detail Modal */}
+      <StoryDetailModal
+        story={selectedStory}
+        epic={rawEpics.find(e => e.id === selectedStory?.epic_id)}
+        tasks={rawTasks}
+        open={storyModalOpen}
+        onClose={() => setStoryModalOpen(false)}
+      />
     </div>
   )
 }
