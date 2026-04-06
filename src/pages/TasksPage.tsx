@@ -90,7 +90,7 @@ const SUB_TABS: { id: SubTab; label: string }[] = [
 // ═══════════════════════════════════════════════════════════════════════════════
 // EPICS TABLE
 // ═══════════════════════════════════════════════════════════════════════════════
-type EpicSortKey = 'id' | 'title' | 'status' | 'priority' | 'owner' | 'created_at'
+type EpicSortKey = 'id' | 'title' | 'status' | 'priority' | 'owner' | 'updated_at'
 
 function EpicDetailModal({ epic, stories, tasks, open, onClose, onUpdated }: {
   epic: Epic | null; stories: Story[]; tasks: Task[]; open: boolean; onClose: () => void; onUpdated?: () => void
@@ -378,7 +378,7 @@ function EpicsTable({ epics, allStories, allTasks, onSelectEpic }: {
           break
         }
         case 'owner': cmp = (a.owner ?? '').localeCompare(b.owner ?? ''); break
-        case 'created_at': cmp = (a.created_at ?? '').localeCompare(b.created_at ?? ''); break
+        case 'updated_at': cmp = (a.updated_at ?? '').localeCompare(b.updated_at ?? ''); break
       }
       return sort.dir === 'asc' ? cmp : -cmp
     })
@@ -400,7 +400,7 @@ function EpicsTable({ epics, allStories, allTasks, onSelectEpic }: {
             <th className="py-1.5 px-2 text-left font-medium">스토리</th>
             <th className="py-1.5 px-2 text-left font-medium">태스크</th>
             <th className="py-1.5 px-2 text-left font-medium">진행률</th>
-            <SortHeader label="생성일" sortKey="created_at" current={sort} onSort={onSort} />
+            <SortHeader label="최근 수정" sortKey="updated_at" current={sort} onSort={onSort} />
           </tr>
         </thead>
         <tbody className="divide-y divide-border/50">
@@ -431,7 +431,7 @@ function EpicsTable({ epics, allStories, allTasks, onSelectEpic }: {
                     <span className="text-xs text-muted-foreground">{pct}%</span>
                   </div>
                 </td>
-                <td className="py-2 px-2 text-xs text-muted-foreground">{(e.created_at ?? '').slice(0, 10)}</td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{(e.updated_at ?? e.created_at ?? '').slice(0, 10)}</td>
               </tr>
             )
           })}
@@ -444,7 +444,7 @@ function EpicsTable({ epics, allStories, allTasks, onSelectEpic }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 // STORIES TABLE
 // ═══════════════════════════════════════════════════════════════════════════════
-type StorySortKey = 'id' | 'title' | 'status' | 'epic_id' | 'owner' | 'created_at'
+type StorySortKey = 'id' | 'title' | 'status' | 'epic_id' | 'owner' | 'updated_at'
 
 function StoriesTable({ stories, allTasks, epics, onSelectStory }: {
   stories: Story[]; allTasks: Task[]; epics: Epic[]; onSelectStory: (s: Story) => void
@@ -467,7 +467,7 @@ function StoriesTable({ stories, allTasks, epics, onSelectStory }: {
         case 'status': cmp = (a.status ?? '').localeCompare(b.status ?? ''); break
         case 'epic_id': cmp = (a.epic_id ?? '').localeCompare(b.epic_id ?? '') || a.id.localeCompare(b.id); break
         case 'owner': cmp = (a.owner ?? '').localeCompare(b.owner ?? ''); break
-        case 'created_at': cmp = (a.created_at ?? '').localeCompare(b.created_at ?? ''); break
+        case 'updated_at': cmp = (a.updated_at ?? '').localeCompare(b.updated_at ?? ''); break
       }
       return sort.dir === 'asc' ? cmp : -cmp
     })
@@ -488,7 +488,7 @@ function StoriesTable({ stories, allTasks, epics, onSelectStory }: {
             <SortHeader label="담당" sortKey="owner" current={sort} onSort={onSort} />
             <th className="py-1.5 px-2 text-left font-medium">태스크</th>
             <th className="py-1.5 px-2 text-left font-medium">진행률</th>
-            <SortHeader label="생성일" sortKey="created_at" current={sort} onSort={onSort} />
+            <SortHeader label="최근 수정" sortKey="updated_at" current={sort} onSort={onSort} />
           </tr>
         </thead>
         <tbody className="divide-y divide-border/50">
@@ -522,7 +522,7 @@ function StoriesTable({ stories, allTasks, epics, onSelectStory }: {
                     <span className="text-xs text-muted-foreground">{pct}%</span>
                   </div>
                 </td>
-                <td className="py-2 px-2 text-xs text-muted-foreground">{(s.created_at ?? '').slice(0, 10)}</td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{(s.updated_at ?? s.created_at ?? '').slice(0, 10)}</td>
               </tr>
             )
           })}
@@ -544,7 +544,7 @@ function TaskRow({
 }) {
   const statusCls = STATUS_CLASS[task.status] ?? STATUS_CLASS.TODO
   const unread = hasUnread(task.id, latestHistoryDate)
-  const dateStr = (task.completed_date ?? task.updated_at ?? '').slice(5, 10)
+  const dateStr = (task.updated_at ?? task.completed_date ?? '').slice(5, 10)
 
   return (
     <tr
@@ -627,7 +627,7 @@ function StorySection({
                 <th className="py-1 px-2 text-center font-medium w-[110px]">상태</th>
                 <th className="py-1 px-2 text-center font-medium w-[60px]">담당</th>
                 <th className="py-1 px-2 text-center font-medium w-[50px]">ICE</th>
-                <th className="py-1 px-2 text-center font-medium w-[60px]">등록일</th>
+                <th className="py-1 px-2 text-center font-medium w-[60px]">수정일</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
