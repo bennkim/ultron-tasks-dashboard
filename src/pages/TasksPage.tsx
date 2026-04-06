@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -38,6 +38,32 @@ const HISTORY_DOT_CLASS: Record<string, string> = {
   blocked: 'bg-red-500', reopened: 'bg-gray-400', commented: 'bg-gray-400', assigned: 'bg-gray-400',
 }
 
+const PRIORITY_ORDER: Record<string, number> = { P0: 0, P1: 1, P2: 2, P3: 3 }
+const PRIORITY_EMOJI: Record<string, string> = { P0: '🔴', P1: '🟠', P2: '🟡', P3: '⚪' }
+
+// ─── Sort helpers ─────────────────────────────────────────────────────────────
+type SortDir = 'asc' | 'desc'
+type SortState<K extends string> = { key: K; dir: SortDir }
+
+function toggleSort<K extends string>(prev: SortState<K>, key: K): SortState<K> {
+  if (prev.key === key) return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+  return { key, dir: 'asc' }
+}
+
+function SortHeader<K extends string>({ label, sortKey, current, onSort }: {
+  label: string; sortKey: K; current: SortState<K>; onSort: (k: K) => void
+}) {
+  const active = current.key === sortKey
+  return (
+    <th
+      className="py-1.5 px-2 text-left font-medium cursor-pointer select-none hover:text-foreground transition-colors"
+      onClick={() => onSort(sortKey)}
+    >
+      {label} {active ? (current.dir === 'asc' ? '↑' : '↓') : ''}
+    </th>
+  )
+}
+
 // ─── localStorage red-dot helpers ────────────────────────────────────────────
 function getReadMap(): Record<string, string> {
   try { return JSON.parse(localStorage.getItem('taskReadMap') ?? '{}') } catch { return {} }
@@ -53,7 +79,196 @@ function hasUnread(id: string, latestDate?: string): boolean {
   return !m[id] || m[id] < latestDate
 }
 
-// ─── Task row ────────────────────────────────────────────────────────────────
+// ─── Sub-tab types ────────────────────────────────────────────────────────────
+type SubTab = 'overview' | 'epics' | 'stories'
+const SUB_TABS: { id: SubTab; label: string }[] = [
+  { id: 'overview', label: '📋 태스크 보드' },
+  { id: 'epics', label: '🎯 에픽 목록' },
+  { id: 'stories', label: '📖 스토리 목록' },
+]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EPICS TABLE
+// ═══════════════════════════════════════════════════════════════════════════════
+type EpicSortKey = 'id' | 'title' | 'status' | 'priority' | 'owner' | 'created_at'
+
+function EpicsTable({ epics, allStories, allTasks }: {
+  epics: Epic[]; allStories: Story[]; allTasks: Task[]
+}) {
+  const [sort, setSort] = useState<SortState<EpicSortKey>>({ key: 'priority', dir: 'asc' })
+
+  const sorted = useMemo(() => {
+    const arr = [...epics]
+    arr.sort((a, b) => {
+      let cmp = 0
+      switch (sort.key) {
+        case 'id': cmp = a.id.localeCompare(b.id); break
+        case 'title': cmp = a.title.localeCompare(b.title); break
+        case 'status': cmp = (a.status ?? '').localeCompare(b.status ?? ''); break
+        case 'priority': {
+          const pa = PRIORITY_ORDER[a.priority ?? ''] ?? 99
+          const pb = PRIORITY_ORDER[b.priority ?? ''] ?? 99
+          cmp = pa - pb || a.id.localeCompare(b.id)
+          break
+        }
+        case 'owner': cmp = (a.owner ?? '').localeCompare(b.owner ?? ''); break
+        case 'created_at': cmp = (a.created_at ?? '').localeCompare(b.created_at ?? ''); break
+      }
+      return sort.dir === 'asc' ? cmp : -cmp
+    })
+    return arr
+  }, [epics, sort])
+
+  const onSort = useCallback((k: EpicSortKey) => setSort(s => toggleSort(s, k)), [])
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs text-muted-foreground">
+            <SortHeader label="ID" sortKey="id" current={sort} onSort={onSort} />
+            <SortHeader label="에픽명" sortKey="title" current={sort} onSort={onSort} />
+            <SortHeader label="상태" sortKey="status" current={sort} onSort={onSort} />
+            <SortHeader label="우선순위" sortKey="priority" current={sort} onSort={onSort} />
+            <SortHeader label="담당" sortKey="owner" current={sort} onSort={onSort} />
+            <th className="py-1.5 px-2 text-left font-medium">스토리</th>
+            <th className="py-1.5 px-2 text-left font-medium">태스크</th>
+            <th className="py-1.5 px-2 text-left font-medium">진행률</th>
+            <SortHeader label="생성일" sortKey="created_at" current={sort} onSort={onSort} />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/50">
+          {sorted.map(e => {
+            const stories = allStories.filter(s => s.epic_id === e.id)
+            const tasks = allTasks.filter(t => t.epic_id === e.id || stories.some(s => s.id === t.story_id))
+            const done = tasks.filter(t => t.status === 'DONE').length
+            const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0
+            const statusCls = STATUS_CLASS[e.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+            return (
+              <tr key={e.id} className="hover:bg-muted/30 text-sm transition-colors">
+                <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{e.id}</td>
+                <td className="py-2 px-2 font-medium">{e.title}</td>
+                <td className="py-2 px-2">
+                  <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${statusCls}`}>
+                    {STATUS_EMOJI[e.status ?? 'TODO'] ?? ''} {e.status ?? 'TODO'}
+                  </span>
+                </td>
+                <td className="py-2 px-2 text-sm">
+                  {e.priority ? <span>{PRIORITY_EMOJI[e.priority] ?? ''} {e.priority}</span> : '—'}
+                </td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{e.owner ?? '—'}</td>
+                <td className="py-2 px-2 text-xs">{stories.length}</td>
+                <td className="py-2 px-2 text-xs">{done}/{tasks.length}</td>
+                <td className="py-2 px-2">
+                  <div className="flex items-center gap-2">
+                    <Progress value={pct} className="h-1.5 w-16" />
+                    <span className="text-xs text-muted-foreground">{pct}%</span>
+                  </div>
+                </td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{(e.created_at ?? '').slice(0, 10)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STORIES TABLE
+// ═══════════════════════════════════════════════════════════════════════════════
+type StorySortKey = 'id' | 'title' | 'status' | 'epic_id' | 'owner' | 'created_at'
+
+function StoriesTable({ stories, allTasks, epics }: {
+  stories: Story[]; allTasks: Task[]; epics: Epic[]
+}) {
+  const [sort, setSort] = useState<SortState<StorySortKey>>({ key: 'epic_id', dir: 'asc' })
+
+  const epicMap = useMemo(() => {
+    const m: Record<string, Epic> = {}
+    epics.forEach(e => { m[e.id] = e })
+    return m
+  }, [epics])
+
+  const sorted = useMemo(() => {
+    const arr = [...stories]
+    arr.sort((a, b) => {
+      let cmp = 0
+      switch (sort.key) {
+        case 'id': cmp = a.id.localeCompare(b.id); break
+        case 'title': cmp = a.title.localeCompare(b.title); break
+        case 'status': cmp = (a.status ?? '').localeCompare(b.status ?? ''); break
+        case 'epic_id': cmp = (a.epic_id ?? '').localeCompare(b.epic_id ?? '') || a.id.localeCompare(b.id); break
+        case 'owner': cmp = (a.owner ?? '').localeCompare(b.owner ?? ''); break
+        case 'created_at': cmp = (a.created_at ?? '').localeCompare(b.created_at ?? ''); break
+      }
+      return sort.dir === 'asc' ? cmp : -cmp
+    })
+    return arr
+  }, [stories, sort])
+
+  const onSort = useCallback((k: StorySortKey) => setSort(s => toggleSort(s, k)), [])
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs text-muted-foreground">
+            <SortHeader label="ID" sortKey="id" current={sort} onSort={onSort} />
+            <SortHeader label="스토리명" sortKey="title" current={sort} onSort={onSort} />
+            <SortHeader label="에픽" sortKey="epic_id" current={sort} onSort={onSort} />
+            <SortHeader label="상태" sortKey="status" current={sort} onSort={onSort} />
+            <SortHeader label="담당" sortKey="owner" current={sort} onSort={onSort} />
+            <th className="py-1.5 px-2 text-left font-medium">태스크</th>
+            <th className="py-1.5 px-2 text-left font-medium">진행률</th>
+            <SortHeader label="생성일" sortKey="created_at" current={sort} onSort={onSort} />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/50">
+          {sorted.map(s => {
+            const tasks = allTasks.filter(t => t.story_id === s.id)
+            const done = tasks.filter(t => t.status === 'DONE').length
+            const pct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0
+            const statusCls = STATUS_CLASS[s.status ?? 'TODO'] ?? STATUS_CLASS.TODO
+            const epic = epicMap[s.epic_id ?? '']
+            return (
+              <tr key={s.id} className="hover:bg-muted/30 text-sm transition-colors">
+                <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{s.id}</td>
+                <td className="py-2 px-2 font-medium">{s.title}</td>
+                <td className="py-2 px-2 text-xs">
+                  {epic ? (
+                    <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                      {epic.id} {epic.title.slice(0, 20)}{epic.title.length > 20 ? '…' : ''}
+                    </span>
+                  ) : (s.epic_id ?? '—')}
+                </td>
+                <td className="py-2 px-2">
+                  <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${statusCls}`}>
+                    {STATUS_EMOJI[s.status ?? 'TODO'] ?? ''} {s.status ?? 'TODO'}
+                  </span>
+                </td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{s.owner ?? '—'}</td>
+                <td className="py-2 px-2 text-xs">{done}/{tasks.length}</td>
+                <td className="py-2 px-2">
+                  <div className="flex items-center gap-2">
+                    <Progress value={pct} className="h-1.5 w-16" />
+                    <span className="text-xs text-muted-foreground">{pct}%</span>
+                  </div>
+                </td>
+                <td className="py-2 px-2 text-xs text-muted-foreground">{(s.created_at ?? '').slice(0, 10)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TASK ROW (existing)
+// ═══════════════════════════════════════════════════════════════════════════════
 function TaskRow({
   task, latestHistoryDate, onOpen,
 }: {
@@ -172,8 +387,6 @@ function EpicSection({
   const done = allTasks.filter(t => t.status === 'DONE').length
   const pct = allTasks.length > 0 ? Math.round((done / allTasks.length) * 100) : 0
 
-  const PRIORITY_EMOJI: Record<string, string> = { P0: '🔴', P1: '🟠', P2: '🟡', P3: '⚪' }
-
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border border-border rounded-lg overflow-hidden mb-3">
       <CollapsibleTrigger className="w-full flex items-center gap-2 px-4 py-3 bg-muted/10 hover:bg-muted/20 text-left transition-colors">
@@ -262,7 +475,6 @@ function TaskDetailModal({
 
         {t && (
           <div className="space-y-4">
-            {/* Meta badges */}
             <div className="flex flex-wrap gap-2">
               <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${STATUS_CLASS[t.status] ?? STATUS_CLASS.TODO}`}>
                 {STATUS_EMOJI[t.status] ?? ''} {t.status}
@@ -284,7 +496,6 @@ function TaskDetailModal({
               )}
             </div>
 
-            {/* Fields grid */}
             <div className="grid grid-cols-2 gap-3 text-sm border rounded-lg p-3 bg-muted/10">
               <Field label="요청자 (Owner)" value={t.owner} />
               <Field label="작업자 (Assignee)" value={t.assignee} />
@@ -312,7 +523,6 @@ function TaskDetailModal({
               )}
             </div>
 
-            {/* History timeline */}
             <div>
               <div className="text-sm font-semibold mb-2">히스토리</div>
               {!detail?.history?.length ? (
@@ -347,7 +557,7 @@ function TaskDetailModal({
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Owner Filters ────────────────────────────────────────────────────────────
 const OWNER_FILTERS = [
   { id: 'all', label: '전체' },
   { id: 'CEO', label: '🤖 CEO' },
@@ -355,22 +565,30 @@ const OWNER_FILTERS = [
   { id: 'CTO', label: '💻 CTO' },
 ]
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
 export function TasksPage() {
-  const [epics, setEpics] = useState<Epic[]>([])
+  const [rawEpics, setRawEpics] = useState<Epic[]>([])
+  const [rawStories, setRawStories] = useState<Story[]>([])
+  const [rawTasks, setRawTasks] = useState<Task[]>([])
+  const [enrichedEpics, setEnrichedEpics] = useState<Epic[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [ownerFilter, setOwnerFilter] = useState('all')
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  // latestDates: task id → latest history date (for red dot)
   const [latestDates, setLatestDates] = useState<Record<string, string>>({})
+  const [subTab, setSubTab] = useState<SubTab>('overview')
 
   useEffect(() => {
     setLoading(true)
     Promise.all([fetchEpics(), fetchStories(), fetchTasks()])
       .then(([epicsData, storiesData, tasksData]) => {
-        // Build hierarchy
-        const enrichedEpics = epicsData.map(epic => ({
+        setRawEpics(epicsData)
+        setRawStories(storiesData)
+        setRawTasks(tasksData)
+        const enriched = epicsData.map(epic => ({
           ...epic,
           stories: storiesData
             .filter(s => s.epic_id === epic.id)
@@ -379,12 +597,11 @@ export function TasksPage() {
               tasks: tasksData.filter(t => t.story_id === story.id),
             })),
         }))
-        setEpics(enrichedEpics)
+        setEnrichedEpics(enriched)
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
 
-    // Load history for red dots
     fetch('https://wakalab-media-worker.kimbang0105.workers.dev/api/history')
       .then(r => r.json())
       .then((data: { history?: Record<string, Array<{ date?: string; created_at?: string }>> }) => {
@@ -398,7 +615,7 @@ export function TasksPage() {
         })
         setLatestDates(latest)
       })
-      .catch(() => {/* non-critical */})
+      .catch(() => {})
   }, [])
 
   const openModal = useCallback((id: string) => {
@@ -410,7 +627,6 @@ export function TasksPage() {
     setModalOpen(false)
   }, [])
 
-  // Count unread tasks for badge
   const unreadCount = Object.entries(latestDates).filter(([id, date]) => hasUnread(id, date)).length
 
   if (loading) {
@@ -441,34 +657,77 @@ export function TasksPage() {
         )}
       </div>
 
-      {/* Owner filter */}
-      <div className="flex gap-2 flex-wrap">
-        {OWNER_FILTERS.map(f => (
-          <Button
-            key={f.id}
-            variant={ownerFilter === f.id ? 'default' : 'outline'}
-            size="sm"
-            className="rounded-full text-xs h-7"
-            onClick={() => setOwnerFilter(f.id)}
+      {/* Sub-tab selector */}
+      <div className="flex gap-1 border-b border-border">
+        {SUB_TABS.map(t => (
+          <button
+            key={t.id}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              subTab === t.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setSubTab(t.id)}
           >
-            {f.label}
-          </Button>
+            {t.label}
+          </button>
         ))}
       </div>
 
-      {/* Epic list */}
-      {epics.length === 0 ? (
-        <p className="text-center text-muted-foreground py-12">태스크가 없습니다.</p>
-      ) : (
-        epics.map(epic => (
-          <EpicSection
-            key={epic.id}
-            epic={epic}
-            ownerFilter={ownerFilter}
-            latestDates={latestDates}
-            onOpen={openModal}
-          />
-        ))
+      {/* Epics tab */}
+      {subTab === 'epics' && (
+        <div className="border border-border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">🎯 에픽 목록</h2>
+            <span className="text-sm text-muted-foreground">{rawEpics.length}개</span>
+          </div>
+          <EpicsTable epics={rawEpics} allStories={rawStories} allTasks={rawTasks} />
+        </div>
+      )}
+
+      {/* Stories tab */}
+      {subTab === 'stories' && (
+        <div className="border border-border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">📖 스토리 목록</h2>
+            <span className="text-sm text-muted-foreground">{rawStories.length}개</span>
+          </div>
+          <StoriesTable stories={rawStories} allTasks={rawTasks} epics={rawEpics} />
+        </div>
+      )}
+
+      {/* Overview (existing board) */}
+      {subTab === 'overview' && (
+        <>
+          {/* Owner filter */}
+          <div className="flex gap-2 flex-wrap">
+            {OWNER_FILTERS.map(f => (
+              <Button
+                key={f.id}
+                variant={ownerFilter === f.id ? 'default' : 'outline'}
+                size="sm"
+                className="rounded-full text-xs h-7"
+                onClick={() => setOwnerFilter(f.id)}
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
+
+          {enrichedEpics.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">태스크가 없습니다.</p>
+          ) : (
+            enrichedEpics.map(epic => (
+              <EpicSection
+                key={epic.id}
+                epic={epic}
+                ownerFilter={ownerFilter}
+                latestDates={latestDates}
+                onOpen={openModal}
+              />
+            ))
+          )}
+        </>
       )}
 
       {/* Task Detail Modal */}

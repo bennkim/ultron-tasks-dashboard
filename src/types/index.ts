@@ -13,6 +13,7 @@ export interface Task {
   description?: string
   priority?: string
   story_id?: string
+  epic_id?: string
 }
 
 export interface Story {
@@ -20,6 +21,7 @@ export interface Story {
   title: string
   status: TaskStatus
   epic_id?: string
+  owner?: string
   created_at?: string
   updated_at?: string
   tasks?: Task[]
@@ -30,9 +32,12 @@ export interface Epic {
   title: string
   status?: string
   priority?: string
+  owner?: string
+  goal?: string
   created_at?: string
   updated_at?: string
   stories?: Story[]
+  epic_id?: string
 }
 
 export interface HistoryEntry {
