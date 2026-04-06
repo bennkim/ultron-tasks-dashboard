@@ -155,7 +155,7 @@ function CreativeGrid() {
           </CardHeader>
           <CardContent>
             {c.image_url ? (
-              <img src={c.image_url} alt={c.label} className="w-full h-40 object-cover rounded mb-3" />
+              <img src={c.image_url} alt={c.label} className="w-full aspect-square object-cover rounded mb-3" />
             ) : (
               <div className="w-full h-40 bg-muted rounded mb-3 flex items-center justify-center text-muted-foreground text-sm">미리보기 없음</div>
             )}
