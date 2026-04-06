@@ -551,7 +551,7 @@ function TaskRow({
       className="hover:bg-muted/30 cursor-pointer text-sm transition-colors"
       onClick={() => onOpen(task.id)}
     >
-      <td className="py-1.5 px-2 font-mono text-xs text-muted-foreground whitespace-nowrap">
+      <td className="py-1.5 px-2 font-mono text-xs text-muted-foreground whitespace-nowrap w-[60px]">
         <span className="relative inline-flex items-center gap-1">
           {task.id}
           {unread && (
@@ -559,19 +559,19 @@ function TaskRow({
           )}
         </span>
       </td>
-      <td className="py-1.5 px-2 text-left flex-1 min-w-0">
+      <td className="py-1.5 px-2 text-left">
         <span className="line-clamp-2">{task.title}</span>
       </td>
-      <td className="py-1.5 px-2 whitespace-nowrap">
+      <td className="py-1.5 px-2 text-center whitespace-nowrap w-[110px]">
         <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border ${statusCls}`}>
           {STATUS_EMOJI[task.status] ?? ''} {task.status}
         </span>
       </td>
-      <td className="py-1.5 px-2 text-xs text-muted-foreground whitespace-nowrap">{task.owner ?? '—'}</td>
-      <td className={`py-1.5 px-2 text-xs text-right whitespace-nowrap ${ICE_CLASS(task.ice_score)}`}>
+      <td className="py-1.5 px-2 text-xs text-muted-foreground text-center whitespace-nowrap w-[60px]">{task.owner ?? '—'}</td>
+      <td className={`py-1.5 px-2 text-xs text-center whitespace-nowrap w-[50px] ${ICE_CLASS(task.ice_score)}`}>
         {task.ice_score && task.ice_score > 0 ? task.ice_score : '—'}
       </td>
-      <td className="py-1.5 px-2 text-xs text-muted-foreground text-center whitespace-nowrap">{dateStr || '—'}</td>
+      <td className="py-1.5 px-2 text-xs text-muted-foreground text-center whitespace-nowrap w-[60px]">{dateStr || '—'}</td>
     </tr>
   )
 }
@@ -619,15 +619,15 @@ function StorySection({
       </div>
       <CollapsibleContent>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm mt-0.5">
+          <table className="w-full text-sm mt-0.5 table-fixed">
             <thead>
               <tr className="border-b border-border text-xs text-muted-foreground">
-                <th className="py-1 px-2 text-left font-medium">Task</th>
+                <th className="py-1 px-2 text-left font-medium w-[60px]">Task</th>
                 <th className="py-1 px-2 text-left font-medium">제목</th>
-                <th className="py-1 px-2 text-left font-medium">상태</th>
-                <th className="py-1 px-2 text-left font-medium">담당</th>
-                <th className="py-1 px-2 text-right font-medium">ICE</th>
-                <th className="py-1 px-2 text-center font-medium">등록일</th>
+                <th className="py-1 px-2 text-center font-medium w-[110px]">상태</th>
+                <th className="py-1 px-2 text-center font-medium w-[60px]">담당</th>
+                <th className="py-1 px-2 text-center font-medium w-[50px]">ICE</th>
+                <th className="py-1 px-2 text-center font-medium w-[60px]">등록일</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
