@@ -1,0 +1,1483 @@
+[
+  {
+    "id": 1,
+    "name": "KOPI",
+    "slug": "kopi",
+    "profile": "https://clutch.co/profile/kopi",
+    "location": "South Korea",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "kopi.studio",
+    "website": "https://kopi.studio",
+    "emails": [
+      "hello@thekopiclub.com",
+      "jemkoh@thekopiclub.com"
+    ],
+    "primary_email": "hello@thekopiclub.com"
+  },
+  {
+    "id": 2,
+    "name": "Creatip",
+    "slug": "creatip",
+    "profile": "https://clutch.co/profile/creatip",
+    "location": "Gangnam-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "creatip.co.kr",
+    "website": "https://creatip.co.kr",
+    "emails": [
+      "creatip@creatip.co.kr",
+      "info@creatip.co.jp"
+    ],
+    "primary_email": "creatip@creatip.co.kr"
+  },
+  {
+    "id": 3,
+    "name": "Punch Digital Marketing",
+    "slug": "punch-digital-marketing",
+    "profile": "https://clutch.co/profile/punch-digital-marketing",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "punchkorea.com",
+    "website": "https://punchkorea.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 4,
+    "name": "Bloomstreet, Inc",
+    "slug": "bloomstreet",
+    "profile": "https://clutch.co/profile/bloomstreet",
+    "location": "Mapo-gu",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "bloomstreetjapan.com",
+    "website": "https://bloomstreetjapan.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 5,
+    "name": "AJ Marketing",
+    "slug": "aj-marketing",
+    "profile": "https://clutch.co/profile/aj-marketing",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "ajmarketing.io",
+    "website": "https://ajmarketing.io",
+    "emails": [
+      "info@ajmarketing.io"
+    ],
+    "primary_email": "info@ajmarketing.io"
+  },
+  {
+    "id": 6,
+    "name": "Waterbe",
+    "slug": "waterbe",
+    "profile": "https://clutch.co/profile/waterbe",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "waterbecorp.com",
+    "website": "https://waterbecorp.com",
+    "emails": [
+      "info@waterbecorp.com",
+      "hello@waterbecorp.com"
+    ],
+    "primary_email": "info@waterbecorp.com"
+  },
+  {
+    "id": 7,
+    "name": "TALENTism",
+    "slug": "talentism",
+    "profile": "https://clutch.co/profile/talentism",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "talentism.co.kr",
+    "website": "https://talentism.co.kr",
+    "emails": [
+      "kpark@talentism.co.kr"
+    ],
+    "primary_email": "kpark@talentism.co.kr"
+  },
+  {
+    "id": 8,
+    "name": "Comma Entertainment",
+    "slug": "comma-entertainment",
+    "profile": "https://clutch.co/profile/comma-entertainment",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "comma-entertainment.com",
+    "website": "https://comma-entertainment.com",
+    "emails": [
+      "us@comma-entertainment.com"
+    ],
+    "primary_email": "us@comma-entertainment.com"
+  },
+  {
+    "id": 9,
+    "name": "Honest Block",
+    "slug": "honest-block",
+    "profile": "https://clutch.co/profile/honest-block",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "honestblock.org",
+    "website": "https://honestblock.org",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 10,
+    "name": "Seoulz",
+    "slug": "seoulz",
+    "profile": "https://clutch.co/profile/seoulz",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "seoulz.com",
+    "website": "https://seoulz.com",
+    "emails": [
+      "seoulzinfo@gmail.com"
+    ],
+    "primary_email": "seoulzinfo@gmail.com"
+  },
+  {
+    "id": 11,
+    "name": "LINQ Korea Digital Marketing",
+    "slug": "linq-korea-digital-marketing",
+    "profile": "https://clutch.co/profile/linq-korea-digital-marketing",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "linqkorea.com",
+    "website": "https://linqkorea.com",
+    "emails": [
+      "contact@linqkorea.com",
+      "catherine.kim@linqkorea.com",
+      "jenny@linqkorea.com"
+    ],
+    "primary_email": "contact@linqkorea.com"
+  },
+  {
+    "id": 12,
+    "name": "Inquivix (인퀴빅스)",
+    "slug": "inquivix",
+    "profile": "https://clutch.co/profile/inquivix",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "inquivix.com",
+    "website": "https://inquivix.com",
+    "emails": [
+      "hello@inquivix.com"
+    ],
+    "primary_email": "hello@inquivix.com"
+  },
+  {
+    "id": 13,
+    "name": "RS AD",
+    "slug": "rs-ad",
+    "profile": "https://clutch.co/profile/rs-ad",
+    "location": "Seoul",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "rsad.co.kr",
+    "website": "https://rsad.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 14,
+    "name": "Blue Orange Communication Inc.",
+    "slug": "blue-orange-communication",
+    "profile": "https://clutch.co/profile/blue-orange-communication",
+    "location": "Seocho-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "blorange.co.kr",
+    "website": "https://blorange.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 15,
+    "name": "West-East Forte",
+    "slug": "west-east-forte",
+    "profile": "https://clutch.co/profile/west-east-forte",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "westforte.com",
+    "website": "https://westforte.com",
+    "emails": [
+      "westforte@naver.com"
+    ],
+    "primary_email": "westforte@naver.com"
+  },
+  {
+    "id": 16,
+    "name": "Waymakrs",
+    "slug": "waymakrs",
+    "profile": "https://clutch.co/profile/waymakrs",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "waymakrs.com",
+    "website": "https://waymakrs.com",
+    "emails": [
+      "hello@borderx.com"
+    ],
+    "primary_email": "hello@borderx.com"
+  },
+  {
+    "id": 17,
+    "name": "Undernamu Corp.",
+    "slug": "undernamu-corp",
+    "profile": "https://clutch.co/profile/undernamu-corp",
+    "location": "Daejeon",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "undernamu.com",
+    "website": "https://undernamu.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 18,
+    "name": "Saebyeok Naesi Corp",
+    "slug": "saebyeok-naesi-corp",
+    "profile": "https://clutch.co/profile/saebyeok-naesi-corp",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "4am.team",
+    "website": "https://4am.team",
+    "emails": [
+      "eunsol@4am.team",
+      "kyoungeun@4am.team"
+    ],
+    "primary_email": "eunsol@4am.team"
+  },
+  {
+    "id": 19,
+    "name": "BubbleShare",
+    "slug": "bubbleshare",
+    "profile": "https://clutch.co/profile/bubbleshare",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "bubbleshare.io",
+    "website": "https://bubbleshare.io",
+    "emails": [
+      "admin@bubbleshare.io"
+    ],
+    "primary_email": "admin@bubbleshare.io"
+  },
+  {
+    "id": 20,
+    "name": "MNCS Korea",
+    "slug": "mncs-korea",
+    "profile": "https://clutch.co/profile/mncs-korea",
+    "location": "Gangnam-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "mncskorea.com",
+    "website": "https://mncskorea.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 21,
+    "name": "The SMC Group",
+    "slug": "smc-group",
+    "profile": "https://clutch.co/profile/smc-group",
+    "location": "Gangnam-gu",
+    "size": "250-999",
+    "source": "clutch.co",
+    "domain": "thesmc.co.kr",
+    "website": "https://thesmc.co.kr",
+    "emails": [
+      "info@thesmc.co.kr"
+    ],
+    "primary_email": "info@thesmc.co.kr"
+  },
+  {
+    "id": 22,
+    "name": "OptiFlow",
+    "slug": "optiflow",
+    "profile": "https://clutch.co/profile/optiflow",
+    "location": "Goyang-si",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "optiflow.kr",
+    "website": "https://optiflow.kr",
+    "emails": [
+      "info@optiflow.kr"
+    ],
+    "primary_email": "info@optiflow.kr"
+  },
+  {
+    "id": 23,
+    "name": "Springworks",
+    "slug": "springworks",
+    "profile": "https://clutch.co/profile/springworks",
+    "location": "Jung-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "springworks.co.kr",
+    "website": "https://springworks.co.kr",
+    "emails": [
+      "e-mail.contact@springworks.co.kr",
+      "contact@springworks.co.kr"
+    ],
+    "primary_email": "e-mail.contact@springworks.co.kr"
+  },
+  {
+    "id": 24,
+    "name": "Harsest",
+    "slug": "harsest",
+    "profile": "https://clutch.co/profile/harsest",
+    "location": "Seongdong-gu",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "harsest.com",
+    "website": "https://harsest.com",
+    "emails": [
+      "info@harsest.com"
+    ],
+    "primary_email": "info@harsest.com"
+  },
+  {
+    "id": 25,
+    "name": "Asiance",
+    "slug": "asiance",
+    "profile": "https://clutch.co/profile/asiance",
+    "location": "Jung-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "asiance.com",
+    "website": "https://asiance.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 26,
+    "name": "AD Efficiency",
+    "slug": "ad-efficiency",
+    "profile": "https://clutch.co/profile/ad-efficiency",
+    "location": "Seocho-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "adef.co.kr",
+    "website": "https://adef.co.kr",
+    "emails": [
+      "contact@adef.co.kr",
+      "retail@adef.co.kr",
+      "adef-global@adef.co.kr",
+      "3pm-ns@adef.co.kr",
+      "admin1@adef.co.kr"
+    ],
+    "primary_email": "contact@adef.co.kr"
+  },
+  {
+    "id": 27,
+    "name": "Studio Dreamss",
+    "slug": "studio-dreamss",
+    "profile": "https://clutch.co/profile/studio-dreamss",
+    "location": "Seoul",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "dreamssproduction.com",
+    "website": "https://dreamssproduction.com",
+    "emails": [
+      "hello@dreamssproduction.com"
+    ],
+    "primary_email": "hello@dreamssproduction.com"
+  },
+  {
+    "id": 28,
+    "name": "LaLaLa World",
+    "slug": "lalala-world",
+    "profile": "https://clutch.co/profile/lalala-world",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "lalalaworld.com",
+    "website": "https://lalalaworld.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 29,
+    "name": "D&K Korea",
+    "slug": "dk-korea",
+    "profile": "https://clutch.co/profile/dk-korea",
+    "location": "Yongin-si",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "dnkkorea.kr",
+    "website": "https://dnkkorea.kr",
+    "emails": [
+      "dnk@dnkkorea.kr"
+    ],
+    "primary_email": "dnk@dnkkorea.kr"
+  },
+  {
+    "id": 30,
+    "name": "OSO",
+    "slug": "oso",
+    "profile": "https://clutch.co/profile/oso",
+    "location": "Jung-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "oso.co.kr",
+    "website": "https://oso.co.kr",
+    "emails": [
+      "oso@oso.co.kr"
+    ],
+    "primary_email": "oso@oso.co.kr"
+  },
+  {
+    "id": 31,
+    "name": "RESO.design",
+    "slug": "resodesign",
+    "profile": "https://clutch.co/profile/resodesign",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "resopr.com",
+    "website": "https://resopr.com",
+    "emails": [
+      "mjkim@resopr.com"
+    ],
+    "primary_email": "mjkim@resopr.com"
+  },
+  {
+    "id": 32,
+    "name": "The Hoffman Agency Korea",
+    "slug": "hoffman-agency-korea",
+    "profile": "https://clutch.co/profile/hoffman-agency-korea",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "hoffman.kr",
+    "website": "https://hoffman.kr",
+    "emails": [
+      "kkwon@hoffman.com"
+    ],
+    "primary_email": "kkwon@hoffman.com"
+  },
+  {
+    "id": 33,
+    "name": "Hahm Partners",
+    "slug": "hahm-partners",
+    "profile": "https://clutch.co/profile/hahm-partners",
+    "location": "Seoul",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "hahmpartners.com",
+    "website": "https://hahmpartners.com",
+    "emails": [
+      "info@hahmpartners.com"
+    ],
+    "primary_email": "info@hahmpartners.com"
+  },
+  {
+    "id": 34,
+    "name": "FleishmanHillard",
+    "slug": "fleishmanhillard-0",
+    "profile": "https://clutch.co/profile/fleishmanhillard-0",
+    "location": "Gangnam-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "fleishmanhillard.co.kr",
+    "website": "https://fleishmanhillard.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 35,
+    "name": "Access Communications & Consulting Co.",
+    "slug": "access-communications-consulting-co",
+    "profile": "https://clutch.co/profile/access-communications-consulting-co",
+    "location": "Gangnam-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "accesspr.co.kr",
+    "website": "https://accesspr.co.kr",
+    "emails": [
+      "webmaster@accesspr.co.kr",
+      "hr@accesspr.co.kr"
+    ],
+    "primary_email": "webmaster@accesspr.co.kr"
+  },
+  {
+    "id": 36,
+    "name": "VSLB Inc.",
+    "slug": "vslb",
+    "profile": "https://clutch.co/profile/vslb",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "vs-lb.com",
+    "website": "https://vs-lb.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 37,
+    "name": "LeadLynx Korea",
+    "slug": "leadlynx-korea",
+    "profile": "https://clutch.co/profile/leadlynx-korea",
+    "location": "Seongnam-si",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "leadlynx.co.kr",
+    "website": "https://leadlynx.co.kr",
+    "emails": [
+      "info@leadlynx.co.kr",
+      "info@leadlynx.com",
+      "info@seumlighting.co.kr"
+    ],
+    "primary_email": "info@leadlynx.co.kr"
+  },
+  {
+    "id": 38,
+    "name": "Yello Digital Marketing",
+    "slug": "yello-digital-marketing",
+    "profile": "https://clutch.co/profile/yello-digital-marketing",
+    "location": "Seoul",
+    "size": "1000+",
+    "source": "clutch.co",
+    "domain": "yellodm.com",
+    "website": "https://yellodm.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 39,
+    "name": "Linkorea Digital Marketing",
+    "slug": "linkorea-digital-marketing",
+    "profile": "https://clutch.co/profile/linkorea-digital-marketing",
+    "location": "Seoul",
+    "size": "2-9",
+    "source": "clutch.co",
+    "domain": "linkoreamarketing.com",
+    "website": "https://linkoreamarketing.com",
+    "emails": [
+      "contact@linkoreamarketing.com"
+    ],
+    "primary_email": "contact@linkoreamarketing.com"
+  },
+  {
+    "id": 40,
+    "name": "Catching Clicks",
+    "slug": "catching-clicks",
+    "profile": "https://clutch.co/profile/catching-clicks",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "catchingclicks.com",
+    "website": "https://catchingclicks.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 41,
+    "name": "KPR & Associates, Inc.",
+    "slug": "kpr-associates",
+    "profile": "https://clutch.co/profile/kpr-associates",
+    "location": "Jung-gu, Seoul",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "kpr.co.kr",
+    "website": "https://kpr.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 42,
+    "name": "Korcom Porternovelli",
+    "slug": "korcom-porternovelli",
+    "profile": "https://clutch.co/profile/korcom-porternovelli",
+    "location": "Jung-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "korcom.com",
+    "website": "https://korcom.com",
+    "emails": [
+      "info@korcom.com"
+    ],
+    "primary_email": "info@korcom.com"
+  },
+  {
+    "id": 43,
+    "name": "Weber Shandwick (Korea)",
+    "slug": "weber-shandwick-korea",
+    "profile": "https://clutch.co/profile/weber-shandwick-korea",
+    "location": "Gangnam-gu",
+    "size": "1000+",
+    "source": "clutch.co",
+    "domain": "webershandwick.co.kr",
+    "website": "https://webershandwick.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 44,
+    "name": "ASATSU-DK KOREA LTD.",
+    "slug": "asatsu-dk-korea",
+    "profile": "https://clutch.co/profile/asatsu-dk-korea",
+    "location": "Seocho-gu",
+    "size": "1000+",
+    "source": "clutch.co",
+    "domain": "adkkorea.com",
+    "website": "https://adkkorea.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 45,
+    "name": "TBWA Korea",
+    "slug": "tbwa-korea",
+    "profile": "https://clutch.co/profile/tbwa-korea",
+    "location": "Seosan-si",
+    "size": "1000+",
+    "source": "clutch.co",
+    "domain": "tbwakorea.com",
+    "website": "https://tbwakorea.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 46,
+    "name": "Humming IMC",
+    "slug": "humming-imc",
+    "profile": "https://clutch.co/profile/humming-imc",
+    "location": "Gangnam-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "hummingimc.com",
+    "website": "https://hummingimc.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 47,
+    "name": "FEELingK",
+    "slug": "feelingk",
+    "profile": "https://clutch.co/profile/feelingk",
+    "location": "Yeongdeungpo-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "feelingk.com",
+    "website": "https://feelingk.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 48,
+    "name": "Magister Marketing and Consultancy",
+    "slug": "magister-marketing-consultancy",
+    "profile": "https://clutch.co/profile/magister-marketing-consultancy",
+    "location": "Seoul",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "magisterco.com",
+    "website": "https://magisterco.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 49,
+    "name": "TK101 Global",
+    "slug": "tk101-global",
+    "profile": "https://clutch.co/profile/tk101-global",
+    "location": "Gangnam-gu",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "tk101global.com",
+    "website": "https://tk101global.com",
+    "emails": [
+      "marketing@tk101global.com"
+    ],
+    "primary_email": "marketing@tk101global.com"
+  },
+  {
+    "id": 50,
+    "name": "Keystone Marketing Company",
+    "slug": "keystone-marketing-company",
+    "profile": "https://clutch.co/profile/keystone-marketing-company",
+    "location": "Seocho-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "keystonemc.com",
+    "website": "https://keystonemc.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 51,
+    "name": "Briman Communications",
+    "slug": "briman-communications",
+    "profile": "https://clutch.co/profile/briman-communications",
+    "location": "Seocho-gu",
+    "size": "10-49",
+    "source": "clutch.co",
+    "domain": "briman.co.kr",
+    "website": "https://briman.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 52,
+    "name": "Brodeur Partners",
+    "slug": "brodeur-partners",
+    "profile": "https://clutch.co/profile/brodeur-partners",
+    "location": "Seoul",
+    "size": "50-249",
+    "source": "clutch.co",
+    "domain": "brodeur.kr",
+    "website": "https://brodeur.kr",
+    "emails": [
+      "grace@brodeurap.com",
+      "jay@brodeurap.com"
+    ],
+    "primary_email": "grace@brodeurap.com"
+  },
+  {
+    "id": 53,
+    "name": "MOTZ",
+    "slug": "motz",
+    "profile": "https://clutch.co/profile/motz",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "motz.kr",
+    "website": "https://motz.kr",
+    "emails": [
+      "edc@motz.kr"
+    ],
+    "primary_email": "edc@motz.kr"
+  },
+  {
+    "id": 54,
+    "name": "D major",
+    "slug": "d-major",
+    "profile": "https://clutch.co/profile/d-major",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "dmajor.kr",
+    "website": "https://dmajor.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 55,
+    "name": "Trinity BPO",
+    "slug": "trinity-bpo",
+    "profile": "https://clutch.co/profile/trinity-bpo",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "trinitybpo.com",
+    "website": "https://trinitybpo.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 56,
+    "name": "PostVisual",
+    "slug": "postvisual",
+    "profile": "https://clutch.co/profile/postvisual",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "postvisual.com",
+    "website": "https://postvisual.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 57,
+    "name": "PR One Co.,ltd",
+    "slug": "pr-one-coltd",
+    "profile": "https://clutch.co/profile/pr-one-coltd",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "prone.co.kr",
+    "website": "https://prone.co.kr",
+    "emails": [
+      "admin@prone.co.kr"
+    ],
+    "primary_email": "admin@prone.co.kr"
+  },
+  {
+    "id": 58,
+    "name": "UDM | URBAN DIGITAL MARKETING",
+    "slug": "udm-urban-digital-marketing",
+    "profile": "https://clutch.co/profile/udm-urban-digital-marketing",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "urbandigital.com",
+    "website": "https://urbandigital.com",
+    "emails": [
+      "hello@udm.kr",
+      "woo_cow@udm.kr",
+      "sh.yoon@udm.kr",
+      "accounting@udm.kr",
+      "kh.choi@udm.kr",
+      "gs.byeon@udm.kr",
+      "jc.ahn@udm.kr"
+    ],
+    "primary_email": "hello@udm.kr"
+  },
+  {
+    "id": 59,
+    "name": "InterAd",
+    "slug": "interad",
+    "profile": "https://clutch.co/profile/interad",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "interad.com",
+    "website": "https://interad.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 60,
+    "name": "AP Communications",
+    "slug": "ap-communications",
+    "profile": "https://clutch.co/profile/ap-communications",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "apcomm.co.kr",
+    "website": "https://apcomm.co.kr",
+    "emails": [
+      "contact@apcomm.co.kr"
+    ],
+    "primary_email": "contact@apcomm.co.kr"
+  },
+  {
+    "id": 61,
+    "name": "aix",
+    "slug": "aix",
+    "profile": "https://clutch.co/profile/aix",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "aixinc.io",
+    "website": "https://aixinc.io",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 62,
+    "name": "G3 Partners",
+    "slug": "g3-partners",
+    "profile": "https://clutch.co/profile/g3-partners",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "g3partners.asia",
+    "website": "https://g3partners.asia",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 63,
+    "name": "SNS Social",
+    "slug": "sns-social",
+    "profile": "https://clutch.co/profile/sns-social",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "snssocial.com",
+    "website": "https://snssocial.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 64,
+    "name": "BARUM",
+    "slug": "barum",
+    "profile": "https://clutch.co/profile/barum",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "thebarum.co.kr",
+    "website": "https://thebarum.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 65,
+    "name": "Tag Worldwide",
+    "slug": "tag-worldwide",
+    "profile": "https://clutch.co/profile/tag-worldwide",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "tagww.com",
+    "website": "https://tagww.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 66,
+    "name": "GLOim",
+    "slug": "gloim",
+    "profile": "https://clutch.co/profile/gloim",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "gloim.co.kr",
+    "website": "https://gloim.co.kr",
+    "emails": [
+      "gloim@gloim.co.kr"
+    ],
+    "primary_email": "gloim@gloim.co.kr"
+  },
+  {
+    "id": 67,
+    "name": "Yellow Story",
+    "slug": "yellow-story",
+    "profile": "https://clutch.co/profile/yellow-story",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "yellostory.co.kr",
+    "website": "https://yellostory.co.kr",
+    "emails": [
+      "help@revu.net"
+    ],
+    "primary_email": "help@revu.net"
+  },
+  {
+    "id": 68,
+    "name": "Inobean",
+    "slug": "inobean",
+    "profile": "https://clutch.co/profile/inobean",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "inobean.com",
+    "website": "https://inobean.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 69,
+    "name": "INBRANDSEOUL",
+    "slug": "inbrandseoul",
+    "profile": "https://clutch.co/profile/inbrandseoul",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "inbrandseoul.mystrikingly.com",
+    "website": "https://inbrandseoul.mystrikingly.com",
+    "emails": [
+      "inbrandseoul@gmail.com"
+    ],
+    "primary_email": "inbrandseoul@gmail.com"
+  },
+  {
+    "id": 70,
+    "name": "Dove to Rabbit",
+    "slug": "dove-rabbit",
+    "profile": "https://clutch.co/profile/dove-rabbit",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "dovetorabbit.com",
+    "website": "https://dovetorabbit.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 71,
+    "name": "Neodigm",
+    "slug": "neodigm",
+    "profile": "https://clutch.co/profile/neodigm",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "neodigm.com",
+    "website": "https://neodigm.com",
+    "emails": [
+      "rgst@neodigm.com",
+      "sumif@neodigm.com"
+    ],
+    "primary_email": "rgst@neodigm.com"
+  },
+  {
+    "id": 72,
+    "name": "Digiant Global",
+    "slug": "digiant-global",
+    "profile": "https://clutch.co/profile/digiant-global",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "digiantglobal.com",
+    "website": "https://digiantglobal.com",
+    "emails": [
+      "hello@digiantglobal.com",
+      "jobs@digiantglobal.com",
+      "press@digiantglobal.com"
+    ],
+    "primary_email": "hello@digiantglobal.com"
+  },
+  {
+    "id": 73,
+    "name": "MAKAIO CREATIVE GROUP",
+    "slug": "makaio-creative-group",
+    "profile": "https://clutch.co/profile/makaio-creative-group",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "makaiocreativegroup.com",
+    "website": "https://makaiocreativegroup.com",
+    "emails": [
+      "info@makaiocreativegroup.com"
+    ],
+    "primary_email": "info@makaiocreativegroup.com"
+  },
+  {
+    "id": 74,
+    "name": "Chayun Public Relations",
+    "slug": "chayun-public-relations",
+    "profile": "https://clutch.co/profile/chayun-public-relations",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "icprkorea.com",
+    "website": "https://icprkorea.com",
+    "emails": [
+      "cpr@icpr.co.kr"
+    ],
+    "primary_email": "cpr@icpr.co.kr"
+  },
+  {
+    "id": 75,
+    "name": "CNC Seoul",
+    "slug": "cnc-seoul",
+    "profile": "https://clutch.co/profile/cnc-seoul",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "cnc-communications.com",
+    "website": "https://cnc-communications.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 76,
+    "name": "Edelman Korea",
+    "slug": "edelman-korea",
+    "profile": "https://clutch.co/profile/edelman-korea",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "edelman.kr",
+    "website": "https://edelman.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 77,
+    "name": "Mezzomedia",
+    "slug": "mezzomedia",
+    "profile": "https://clutch.co/profile/mezzomedia",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "mezzomedia.co.kr",
+    "website": "https://mezzomedia.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 78,
+    "name": "incross",
+    "slug": "incross",
+    "profile": "https://clutch.co/profile/incross",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "incross.com",
+    "website": "https://incross.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 79,
+    "name": "Isentia",
+    "slug": "isentia",
+    "profile": "https://clutch.co/profile/isentia",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "isentia.com",
+    "website": "https://isentia.com",
+    "emails": [
+      "nbt@isentia.com"
+    ],
+    "primary_email": "nbt@isentia.com"
+  },
+  {
+    "id": 80,
+    "name": "URBAN.g",
+    "slug": "urbang",
+    "profile": "https://clutch.co/profile/urbang",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "urbanglobal.kr",
+    "website": "https://urbanglobal.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 81,
+    "name": "LBest",
+    "slug": "lbest",
+    "profile": "https://clutch.co/profile/lbest",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "lbest.com",
+    "website": "https://lbest.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 82,
+    "name": "M&K PR Consulting",
+    "slug": "mk-pr-consulting",
+    "profile": "https://clutch.co/profile/mk-pr-consulting",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "mnkpr.com",
+    "website": "https://mnkpr.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 83,
+    "name": "INNORED",
+    "slug": "innored",
+    "profile": "https://clutch.co/profile/innored",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "innored.co.kr",
+    "website": "https://innored.co.kr",
+    "emails": [
+      "newbusiness@innored.co.kr",
+      "beloved@innored.co.kr",
+      "media_solution@innored.co.kr"
+    ],
+    "primary_email": "newbusiness@innored.co.kr"
+  },
+  {
+    "id": 84,
+    "name": "AdQUA Interactive",
+    "slug": "adqua-interactive",
+    "profile": "https://clutch.co/profile/adqua-interactive",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "adqua.co.kr",
+    "website": "https://adqua.co.kr",
+    "emails": [
+      "recruit@adqua.co.kr",
+      "adqua@adqua.co.kr"
+    ],
+    "primary_email": "recruit@adqua.co.kr"
+  },
+  {
+    "id": 85,
+    "name": "Daehong Communications",
+    "slug": "daehong-communications",
+    "profile": "https://clutch.co/profile/daehong-communications",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "daehong.com",
+    "website": "https://daehong.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 86,
+    "name": "VINYL I",
+    "slug": "vinyl-i",
+    "profile": "https://clutch.co/profile/vinyl-i",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "vinyl-i.com",
+    "website": "https://vinyl-i.com",
+    "emails": [
+      "gil.kim@vinyl-i.com"
+    ],
+    "primary_email": "gil.kim@vinyl-i.com"
+  },
+  {
+    "id": 87,
+    "name": "The Creamunion",
+    "slug": "creamunion",
+    "profile": "https://clutch.co/profile/creamunion",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "crea-m.com",
+    "website": "https://crea-m.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 88,
+    "name": "Doubletree",
+    "slug": "doubletree",
+    "profile": "https://clutch.co/profile/doubletree",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "dtcompany.co.kr",
+    "website": "https://dtcompany.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 89,
+    "name": "Opinno",
+    "slug": "opinno-0",
+    "profile": "https://clutch.co/profile/opinno-0",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "opinno.co.kr",
+    "website": "https://opinno.co.kr",
+    "emails": [
+      "welcome@opinno.co.kr"
+    ],
+    "primary_email": "welcome@opinno.co.kr"
+  },
+  {
+    "id": 90,
+    "name": "Cliq Technologies",
+    "slug": "cliq-technologies",
+    "profile": "https://clutch.co/profile/cliq-technologies",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "cliqtechnologies.in",
+    "website": "https://cliqtechnologies.in",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 91,
+    "name": "TONYEPIC",
+    "slug": "tonyepic",
+    "profile": "https://clutch.co/profile/tonyepic",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "tonyepic.com",
+    "website": "https://tonyepic.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 92,
+    "name": "Mobidays",
+    "slug": "mobidays",
+    "profile": "https://clutch.co/profile/mobidays",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "mobidays.com",
+    "website": "https://mobidays.com",
+    "emails": [
+      "support@mobidays.com"
+    ],
+    "primary_email": "support@mobidays.com"
+  },
+  {
+    "id": 93,
+    "name": "CHAI Communication",
+    "slug": "chai-communication",
+    "profile": "https://clutch.co/profile/chai-communication",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "artistchai.co.kr",
+    "website": "https://artistchai.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 94,
+    "name": "Mable",
+    "slug": "mable",
+    "profile": "https://clutch.co/profile/mable",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "mable-inc.com",
+    "website": "https://mable-inc.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 95,
+    "name": "e-motion",
+    "slug": "e-motion-1",
+    "profile": "https://clutch.co/profile/e-motion-1",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "emotion.co.kr",
+    "website": "https://emotion.co.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 96,
+    "name": "musignDM",
+    "slug": "musigndm",
+    "profile": "https://clutch.co/profile/musigndm",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "musigndm.com",
+    "website": "https://musigndm.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 97,
+    "name": "Design4p",
+    "slug": "design4p",
+    "profile": "https://clutch.co/profile/design4p",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "design4p.com",
+    "website": "https://design4p.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 98,
+    "name": "J.Bridge Marketing Company",
+    "slug": "jbridge-marketing-company",
+    "profile": "https://clutch.co/profile/jbridge-marketing-company",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "jbmc.co.kr",
+    "website": "https://jbmc.co.kr",
+    "emails": [
+      "inquiry@jbmc.co.kr"
+    ],
+    "primary_email": "inquiry@jbmc.co.kr"
+  },
+  {
+    "id": 99,
+    "name": "HandsomeFISH Korea",
+    "slug": "handsomefish-korea",
+    "profile": "https://clutch.co/profile/handsomefish-korea",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "handsomefish.co.kr",
+    "website": "https://handsomefish.co.kr",
+    "emails": [
+      "hello@handsomefish.co.kr",
+      "info@handsomefish.co.kr"
+    ],
+    "primary_email": "hello@handsomefish.co.kr"
+  },
+  {
+    "id": 100,
+    "name": "AppLovin",
+    "slug": "applovin",
+    "profile": "https://clutch.co/profile/applovin",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "applovin.com",
+    "website": "https://applovin.com",
+    "emails": [
+      "jobs@applovin.com",
+      "accommodations@applovin.com"
+    ],
+    "primary_email": "jobs@applovin.com"
+  },
+  {
+    "id": 101,
+    "name": "Pico Group",
+    "slug": "pico-group",
+    "profile": "https://clutch.co/profile/pico-group",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "pico.com",
+    "website": "https://pico.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 102,
+    "name": "SOPHIA",
+    "slug": "sophia",
+    "profile": "https://clutch.co/profile/sophia",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "kidsbus.kr",
+    "website": "https://kidsbus.kr",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 103,
+    "name": "Dentsu Korea",
+    "slug": "dentsu-korea",
+    "profile": "https://clutch.co/profile/dentsu-korea",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "dentsukorea.com",
+    "website": "https://dentsukorea.com",
+    "emails": [],
+    "primary_email": ""
+  },
+  {
+    "id": 104,
+    "name": "JHP Design",
+    "slug": "jhp-design",
+    "profile": "https://clutch.co/profile/jhp-design",
+    "location": "Seoul",
+    "size": "",
+    "source": "clutch.co",
+    "domain": "jhp-design.com",
+    "website": "https://jhp-design.com",
+    "emails": [],
+    "primary_email": ""
+  }
+]
