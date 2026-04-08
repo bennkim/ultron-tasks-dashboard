@@ -123,19 +123,19 @@ export function PerformancePage() {
 
       {/* KPI Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <MetricCard label="\ub178\ucd9c" value={fmt(totals.impressions)} />
-        <MetricCard label="\ud074\ub9ad" value={fmt(totals.clicks)} />
+        <MetricCard label="노출" value={fmt(totals.impressions)} />
+        <MetricCard label="클릭" value={fmt(totals.clicks)} />
         <MetricCard label="CTR" value={fmt(totals.ctr, 2) + '%'} />
         <MetricCard label="CPC" value={fmtKRW(totals.cpc)} />
-        <MetricCard label="\uc9c0\ucd9c" value={fmtKRW(totals.spend)} />
-        <MetricCard label="\uc804\ud658" value={fmt(totals.conversions)} />
+        <MetricCard label="지출" value={fmtKRW(totals.spend)} />
+        <MetricCard label="전환" value={fmt(totals.conversions)} />
         <MetricCard label="ROAS" value={fmt(totals.roas, 1) + 'x'} />
       </div>
 
       {/* Hierarchy: Campaign -> AdSet -> Ad */}
       {perf.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">
-          \ud37c\ud3ec\uba3c\uc2a4 \ub370\uc774\ud130\uac00 \uc5c6\uc2b5\ub2c8\ub2e4. CMO\uac00 \ub370\uc774\ud130\ub97c \uc218\uc9d1\ud558\uba74 \uc5ec\uae30\uc5d0 \ud45c\uc2dc\ub429\ub2c8\ub2e4.
+          퍼포먼스 데이터가 없습니다. CMO가 데이터를 수집하면 여기에 표시됩니다.
         </CardContent></Card>
       ) : (
         <Accordion type="multiple" defaultValue={Array.from(hierarchy.keys())}>
@@ -149,7 +149,7 @@ export function PerformancePage() {
                     <span className="text-sm font-semibold">{campaign.name}</span>
                     <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'} className="text-xs">{campaign.status}</Badge>
                     <span className="ml-auto text-xs text-muted-foreground">
-                      {fmt(campAgg.impressions)} \ub178\ucd9c \u00b7 {fmt(campAgg.clicks)} \ud074\ub9ad \u00b7 {fmtKRW(campAgg.spend)}
+                      {fmt(campAgg.impressions)} 노출 · {fmt(campAgg.clicks)} 클릭 · {fmtKRW(campAgg.spend)}
                     </span>
                   </div>
                 </AccordionTrigger>
@@ -164,32 +164,32 @@ export function PerformancePage() {
                             <div className="flex items-center gap-2">
                               <CardTitle className="text-sm">{adSet?.name || setId}</CardTitle>
                               {adSet && <Badge variant="outline" className="text-xs">{adSet.status}</Badge>}
-                              {adSet?.budget_daily ? <span className="text-xs text-muted-foreground ml-auto">\uc77c\uc608\uc0b0: {fmtKRW(adSet.budget_daily)}</span> : null}
+                              {adSet?.budget_daily ? <span className="text-xs text-muted-foreground ml-auto">일예산: {fmtKRW(adSet.budget_daily)}</span> : null}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {fmt(setAgg.impressions)} \ub178\ucd9c \u00b7 CTR {fmt(setAgg.ctr, 2)}% \u00b7 CPC {fmtKRW(setAgg.cpc)} \u00b7 {fmtKRW(setAgg.spend)} \uc9c0\ucd9c
+                              {fmt(setAgg.impressions)} 노출 · CTR {fmt(setAgg.ctr, 2)}% · CPC {fmtKRW(setAgg.cpc)} · {fmtKRW(setAgg.spend)} 지출
                             </div>
                           </CardHeader>
                           <CardContent>
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>\uad11\uace0</TableHead>
-                                  <TableHead>\ub0a0\uc9dc</TableHead>
-                                  <TableHead className="text-right">\ub178\ucd9c</TableHead>
-                                  <TableHead className="text-right">\ud074\ub9ad</TableHead>
+                                  <TableHead>광고</TableHead>
+                                  <TableHead>날짜</TableHead>
+                                  <TableHead className="text-right">노출</TableHead>
+                                  <TableHead className="text-right">클릭</TableHead>
                                   <TableHead className="text-right">CTR</TableHead>
                                   <TableHead className="text-right">CPC</TableHead>
                                   <TableHead className="text-right">CPM</TableHead>
-                                  <TableHead className="text-right">\uc9c0\ucd9c</TableHead>
-                                  <TableHead className="text-right">\uc804\ud658</TableHead>
+                                  <TableHead className="text-right">지출</TableHead>
+                                  <TableHead className="text-right">전환</TableHead>
                                   <TableHead className="text-right">CPA</TableHead>
                                   <TableHead className="text-right">ROAS</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
                                 {Array.from(ads.entries()).flatMap(([adId, rows]) =>
-                                  rows.map((r, i) => (
+                                  [...rows].sort((a, b) => b.date.localeCompare(a.date)).map((r, i) => (
                                     <TableRow key={`${adId}-${i}`}>
                                       <TableCell className="font-medium text-sm">{r.ad_name || r.ad_id}</TableCell>
                                       <TableCell className="text-sm">{r.date}</TableCell>
