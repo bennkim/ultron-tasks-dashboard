@@ -188,9 +188,8 @@ export function PerformancePage() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {Array.from(ads.entries()).flatMap(([adId, rows]) =>
-                                  [...rows].sort((a, b) => b.date.localeCompare(a.date)).map((r, i) => (
-                                    <TableRow key={`${adId}-${i}`}>
+                                {Array.from(ads.values()).flat().sort((a, b) => b.date.localeCompare(a.date) || (a.ad_name || '').localeCompare(b.ad_name || '')).map((r, i) => (
+                                    <TableRow key={`${r.ad_id}-${r.date}-${i}`}>
                                       <TableCell className="font-medium text-sm">{r.ad_name || r.ad_id}</TableCell>
                                       <TableCell className="text-sm">{r.date}</TableCell>
                                       <TableCell className="text-right">{fmt(r.impressions)}</TableCell>
@@ -203,8 +202,7 @@ export function PerformancePage() {
                                       <TableCell className="text-right">{fmtKRW(r.cpa)}</TableCell>
                                       <TableCell className="text-right">{fmt(r.roas, 1)}x</TableCell>
                                     </TableRow>
-                                  ))
-                                )}
+                                ))}
                               </TableBody>
                             </Table>
                           </CardContent>

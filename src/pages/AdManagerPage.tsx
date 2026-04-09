@@ -31,7 +31,7 @@ function statusVariant(s: string): 'default' | 'secondary' | 'destructive' {
 }
 
 export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
-  const activeTab = subTab || 'daily'
+  const activeTab = subTab || 'performance'
   const handleTabChange = (v: string) => onSubTabChange?.(v)
 
   return (
@@ -39,17 +39,17 @@ export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
       <h1 className="text-2xl font-bold">광고 관리</h1>
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
+          <TabsTrigger value="performance">퍼포먼스</TabsTrigger>
           <TabsTrigger value="daily">일별 성과</TabsTrigger>
           <TabsTrigger value="campaigns">캠페인</TabsTrigger>
           <TabsTrigger value="creatives">소재 비교</TabsTrigger>
           <TabsTrigger value="utm">UTM 빌더</TabsTrigger>
-          <TabsTrigger value="performance">퍼포먼스</TabsTrigger>
         </TabsList>
+        <TabsContent value="performance"><PerformancePage /></TabsContent>
         <TabsContent value="daily"><DailyOverview /></TabsContent>
         <TabsContent value="campaigns"><CampaignList /></TabsContent>
         <TabsContent value="creatives"><CreativeGrid /></TabsContent>
         <TabsContent value="utm"><UtmBuilder /></TabsContent>
-        <TabsContent value="performance"><PerformancePage /></TabsContent>
       </Tabs>
     </div>
   )
@@ -58,7 +58,7 @@ export function AdManagerPage({ subTab, onSubTabChange }: AdManagerPageProps) {
 function DailyOverview() {
   const [metrics, setMetrics] = useState<AdMetric[]>([])
   const [loading, setLoading] = useState(true)
-  useEffect(() => { fetchAdMetrics().then(setMetrics).finally(() => setLoading(false)) }, [])
+  useEffect(() => { fetchAdMetrics().then(ms => setMetrics([...ms].sort((a, b) => b.date.localeCompare(a.date)))).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
   if (metrics.length === 0) return <p className="text-muted-foreground py-4">데이터 없음</p>
   return (
