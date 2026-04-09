@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: '📊', label: 'Ad Manager', id: 'ad-manager' },
   { icon: '👥', label: 'Leads', id: 'leads' },
   { icon: '✍️', label: 'Contents', id: 'contents' },
+  { icon: '🔍', label: 'Logs', id: 'logs' },
 ]
 
 interface SidebarProps {
