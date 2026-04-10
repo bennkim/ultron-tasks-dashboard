@@ -140,7 +140,7 @@ function CampaignList() {
 function CreativeGrid() {
   const [creatives, setCreatives] = useState<Creative[]>([])
   const [loading, setLoading] = useState(true)
-  useEffect(() => { fetchCreatives().then(setCreatives).finally(() => setLoading(false)) }, [])
+  useEffect(() => { fetchCreatives().then(cs => setCreatives([...cs].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')))).finally(() => setLoading(false)) }, [])
   if (loading) return <p className="text-muted-foreground py-4">로딩 중...</p>
   if (creatives.length === 0) return <p className="text-muted-foreground py-4">소재 없음</p>
   return (

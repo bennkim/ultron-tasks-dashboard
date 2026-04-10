@@ -58,12 +58,56 @@ function aggregate(rows: PerfRow[]) {
   }
 }
 
+function AdDetailDialog({ row, onClose }: { row: PerfRow | null; onClose: () => void }) {
+  if (!row) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-background border rounded-lg shadow-lg p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-lg font-semibold">{row.ad_name || row.ad_id}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl leading-none">&times;</button>
+        </div>
+        <div className="space-y-2 text-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <div><span className="text-muted-foreground">날짜:</span> {row.date}</div>
+            <div><span className="text-muted-foreground">Ad ID:</span> {row.ad_id}</div>
+            <div><span className="text-muted-foreground">노출:</span> {fmt(row.impressions)}</div>
+            <div><span className="text-muted-foreground">도달:</span> {fmt(row.reach)}</div>
+            <div><span className="text-muted-foreground">클릭:</span> {fmt(row.clicks)}</div>
+            <div><span className="text-muted-foreground">링크 클릭:</span> {fmt(row.link_clicks)}</div>
+            <div><span className="text-muted-foreground">CTR:</span> {fmt(row.ctr, 2)}%</div>
+            <div><span className="text-muted-foreground">CPC:</span> {fmtKRW(row.cpc)}</div>
+            <div><span className="text-muted-foreground">CPM:</span> {fmtKRW(row.cpm)}</div>
+            <div><span className="text-muted-foreground">지출:</span> {fmtKRW(row.spend)}</div>
+            <div><span className="text-muted-foreground">전환:</span> {fmt(row.conversions)}</div>
+            <div><span className="text-muted-foreground">CPA:</span> {fmtKRW(row.cpa)}</div>
+            <div><span className="text-muted-foreground">ROAS:</span> {fmt(row.roas, 1)}x</div>
+            <div><span className="text-muted-foreground">빈도:</span> {fmt(row.frequency, 2)}</div>
+            <div><span className="text-muted-foreground">랜딩 조회:</span> {fmt(row.landing_page_views)}</div>
+          </div>
+          {(row.quality_ranking || row.engagement_ranking || row.conversion_ranking) && (
+            <div className="border-t pt-2 mt-2">
+              <p className="text-muted-foreground mb-1">품질 순위</p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {row.quality_ranking && <div>품질: {row.quality_ranking}</div>}
+                {row.engagement_ranking && <div>참여: {row.engagement_ranking}</div>}
+                {row.conversion_ranking && <div>전환: {row.conversion_ranking}</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function PerformancePage() {
   const [perf, setPerf] = useState<PerfRow[]>([])
   const [adSets, setAdSets] = useState<AdSet[]>([])
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(7)
+  const [selectedAd, setSelectedAd] = useState<PerfRow | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -139,7 +183,11 @@ export function PerformancePage() {
         </CardContent></Card>
       ) : (
         <Accordion type="multiple" defaultValue={Array.from(hierarchy.keys())}>
-          {Array.from(hierarchy.entries()).map(([campId, { campaign, adSets: adSetMap }]) => {
+          {Array.from(hierarchy.entries()).sort(([, a], [, b]) => {
+            const sa = a.campaign.status === 'active' ? 0 : 1
+            const sb = b.campaign.status === 'active' ? 0 : 1
+            return sa - sb
+          }).map(([campId, { campaign, adSets: adSetMap }]) => {
             const campRows = perf.filter(r => r.campaign_id === campId)
             const campAgg = aggregate(campRows)
             return (
@@ -189,7 +237,7 @@ export function PerformancePage() {
                               </TableHeader>
                               <TableBody>
                                 {Array.from(ads.values()).flat().sort((a, b) => b.date.localeCompare(a.date) || (a.ad_name || '').localeCompare(b.ad_name || '')).map((r, i) => (
-                                    <TableRow key={`${r.ad_id}-${r.date}-${i}`}>
+                                    <TableRow key={`${r.ad_id}-${r.date}-${i}`} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAd(r)}>
                                       <TableCell className="font-medium text-sm">{r.ad_name || r.ad_id}</TableCell>
                                       <TableCell className="text-sm">{r.date}</TableCell>
                                       <TableCell className="text-right">{fmt(r.impressions)}</TableCell>
@@ -216,6 +264,7 @@ export function PerformancePage() {
           })}
         </Accordion>
       )}
+      <AdDetailDialog row={selectedAd} onClose={() => setSelectedAd(null)} />
     </div>
   )
 }
