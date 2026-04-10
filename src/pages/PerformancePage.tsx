@@ -14,6 +14,7 @@ interface PerfRow {
   conversions: number; cpa: number; roas: number; frequency: number
   landing_page_views: number
   quality_ranking?: string; engagement_ranking?: string; conversion_ranking?: string
+  ad_status?: string
 }
 
 interface AdSet { id: string; campaign_id: string; name: string; status: string; targeting?: string; budget_daily: number }
@@ -223,6 +224,7 @@ export function PerformancePage() {
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>광고</TableHead>
+                                  <TableHead>상태</TableHead>
                                   <TableHead className="text-right">노출</TableHead>
                                   <TableHead className="text-right">클릭</TableHead>
                                   <TableHead className="text-right">CTR</TableHead>
@@ -241,6 +243,11 @@ export function PerformancePage() {
                                   return (
                                     <TableRow key={adId} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAd({ ...rows[0], ...agg, ad_name: adName, date: `${rows.length}일 집계` })}>
                                       <TableCell className="font-medium text-sm">{adName}</TableCell>
+                                      <TableCell>
+                                        <Badge variant={rows[0]?.ad_status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                          {rows[0]?.ad_status === 'active' ? 'ON' : 'OFF'}
+                                        </Badge>
+                                      </TableCell>
                                       <TableCell className="text-right">{fmt(agg.impressions)}</TableCell>
                                       <TableCell className="text-right">{fmt(agg.clicks)}</TableCell>
                                       <TableCell className="text-right">{fmt(agg.ctr, 2)}%</TableCell>
