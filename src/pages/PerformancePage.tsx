@@ -15,6 +15,7 @@ interface PerfRow {
   landing_page_views: number
   quality_ranking?: string; engagement_ranking?: string; conversion_ranking?: string
   ad_status?: string
+  thumbnail_url?: string
 }
 
 interface AdSet { id: string; campaign_id: string; name: string; status: string; targeting?: string; budget_daily: number }
@@ -68,6 +69,9 @@ function AdDetailDialog({ row, onClose }: { row: PerfRow | null; onClose: () => 
           <h3 className="text-lg font-semibold">{row.ad_name || row.ad_id}</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl leading-none">&times;</button>
         </div>
+        {row.thumbnail_url && (
+          <img src={row.thumbnail_url} alt={row.ad_name || ''} className="w-full rounded-md mb-4 max-h-48 object-cover" />
+        )}
         <div className="space-y-2 text-sm">
           <div className="grid grid-cols-2 gap-2">
             <div><span className="text-muted-foreground">날짜:</span> {row.date}</div>
