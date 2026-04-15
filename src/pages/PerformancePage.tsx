@@ -70,7 +70,7 @@ function AdDetailDialog({ row, onClose }: { row: PerfRow | null; onClose: () => 
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xl leading-none">&times;</button>
         </div>
         {row.thumbnail_url && (
-          <img src={row.thumbnail_url} alt={row.ad_name || ''} className="w-full rounded-md mb-4 max-h-48 object-cover" />
+          <img src={row.thumbnail_url} alt={row.ad_name || ''} className="w-full aspect-square rounded-md mb-4 object-contain bg-muted" />
         )}
         <div className="space-y-2 text-sm">
           <div className="grid grid-cols-2 gap-2">
