@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-const API = 'https://wakalab-media-worker.kimbang0105.workers.dev'
+const API = 'https://wakalab-media-worker.crabs-ai.workers.dev'
 
 interface ChannelMessage {
   id: number

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
-const API = 'https://wakalab-media-worker.kimbang0105.workers.dev'
+const API = 'https://wakalab-media-worker.crabs-ai.workers.dev'
 
 interface PerfRow {
   campaign_id: string; ad_set_id: string; ad_id: string; ad_name: string; date: string

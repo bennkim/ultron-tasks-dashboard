@@ -1,6 +1,6 @@
 import { Task, SystemStatus, Epic, Story, TaskDetailResponse } from '@/types'
 
-const API = 'https://wakalab-media-worker.kimbang0105.workers.dev'
+const API = 'https://wakalab-media-worker.crabs-ai.workers.dev'
 
 export async function fetchTasks(): Promise<Task[]> {
   const res = await fetch(`${API}/api/tasks`)

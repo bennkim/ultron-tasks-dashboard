@@ -5,4 +5,4 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const API_BASE = 'https://wakalab-media-worker.kimbang0105.workers.dev'
+export const API_BASE = 'https://wakalab-media-worker.crabs-ai.workers.dev'

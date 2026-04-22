@@ -940,7 +940,7 @@ export function TasksPage() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
 
-    fetch('https://wakalab-media-worker.kimbang0105.workers.dev/api/history')
+    fetch('https://wakalab-media-worker.crabs-ai.workers.dev/api/history')
       .then(r => r.json())
       .then((data: { history?: Record<string, Array<{ date?: string; created_at?: string }>> }) => {
         const hist: Record<string, Array<{ date?: string; created_at?: string }>> = data.history ?? {}

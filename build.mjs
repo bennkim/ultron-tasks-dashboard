@@ -691,7 +691,7 @@ function toggleSidebar(){
 }
 
 // ═══ TASK MANAGEMENT (D1 API) ═══
-const API='https://wakalab-media-worker.kimbang0105.workers.dev';
+const API='https://wakalab-media-worker.crabs-ai.workers.dev';
 let TASKS_DATA=null;
 
 function statusEmoji(status){const m={DONE:'✅',IN_PROGRESS:'🔄',BLOCKED:'🚨',TODO:'🔲',BACKLOG:'📋',REVIEW:'🔍'};return m[status]||'⚪';}
